@@ -18,7 +18,7 @@ Build components from simplest to most complex, with each component being indepe
 
 **Requirements**:
 - **Text Display**: Render static text string without modification
-- **Color Support**: Accept hex color codes (e.g., #888888) and convert to ANSI escape codes
+- **Color Support**: Accept hex color codes (e.g., #888888), validate format (#RRGGBB), and apply via Rich Style
 - **Visibility Control**: Can be shown or hidden via configuration
 - **Position**: Typically appears after dynamic elements as suffix text
 - **No Animation**: Static display only, no frame updates needed
@@ -34,10 +34,10 @@ Build components from simplest to most complex, with each component being indepe
 ```
 
 **Test Requirements**:
-- Verify text displays correctly
-- Test hex color conversion to ANSI codes
+- Verify text displays correctly (capture from Rich Console)
+- Test invalid hex color formats are rejected (or documented defaulting behavior)
 - Validate visibility toggle works
-- Ensure no memory leaks from static display
+- Ensure no memory/resource leaks from static display
 
 ---
 
@@ -189,7 +189,7 @@ Build components from simplest to most complex, with each component being indepe
   - Resets position when word changes
   - Character-by-character color application
   - Can be triggered to change direction via API call
-- **Ellipsis Addition**: Automatic "..." suffix to action words
+- **Ellipsis Addition**: Automatic "…" suffix to action words
 - **Color Support**: Full hex color configuration
 
 **Configuration Options**:
@@ -213,7 +213,7 @@ Build components from simplest to most complex, with each component being indepe
     "direction": "left-to-right",
     "event_triggered": false
   },
-  "suffix": "..."
+  "suffix": "…"
 }
 ```
 **Default Action Words**
@@ -454,9 +454,9 @@ All components use `animating: true/false` for consistency:
 ## Color System Requirements
 
 **All Components Must Support**:
-- **Hex Color Input**: Accept colors as #RRGGBB format
-- **ANSI Conversion**: Convert hex to appropriate ANSI escape codes
-- **Terminal Compatibility**: Work with 256-color and true-color terminals
+- **Hex Color Input**: Accept colors as #RRGGBB format (validated)
+- **Rich Styling**: Use Rich for color rendering; avoid emitting raw ANSI in components
+- **Terminal Compatibility**: Work across 256-color and true-color via Rich
 - **Default Colors**:
   - Claude Orange: #D97706
   - Claude Orange Light: #FFA500 (for shimmer)
@@ -464,15 +464,7 @@ All components use `animating: true/false` for consistency:
   - Green: #00FF00 (for success)
   - Red: #FF0000 (for errors)
 
-**Color Conversion Example**:
-```python
-def hex_to_ansi(hex_color):
-    # Convert #RRGGBB to ANSI escape code
-    r = int(hex_color[1:3], 16)
-    g = int(hex_color[3:5], 16)
-    b = int(hex_color[5:7], 16)
-    return f"\033[38;2;{r};{g};{b}m"
-```
+Note: Any direct ANSI examples are illustrative only; the library relies on Rich to handle terminal color output.
 
 ---
 
@@ -583,20 +575,23 @@ Components inherit state configurations in this priority order:
 
 ### Phase 1: Foundation (Week 1)
 - Implement Hint component with tests
-- Implement Spinner component with tests
-- Basic color system implementation
+- Basic color system implementation (hex validation + Rich styling)
 
-### Phase 2: Counters (Week 2)
+### Phase 2: Spinner (Week 2)
+- Implement Spinner component with tests
+- Add initial frame sets (NPM dots, Claude stars)
+
+### Phase 3: Counters (Week 3)
 - Implement Progress component with tests
 - Implement Timer component with tests
 - Shimmer effect system
 
-### Phase 3: Dynamic Text (Week 3)
+### Phase 4: Dynamic Text (Week 4)
 - Implement Message component with tests
 - Complete shimmer integration
 - Action words system
 
-### Phase 4: Integration (Week 4)
+### Phase 5: Integration (Week 5)
 - Combine all components
 - Configuration system
 - Rich/Textual adapters

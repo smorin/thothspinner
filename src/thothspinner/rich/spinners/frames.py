@@ -1,0 +1,89 @@
+"""Built-in spinner frame sets for ThothSpinner.
+
+This module provides various spinner animation frame definitions
+compatible with Rich rendering. Each spinner style includes frames
+and timing intervals.
+"""
+
+from __future__ import annotations
+
+from typing import TypedDict
+
+
+class SpinnerDefinition(TypedDict):
+    """Type definition for spinner configuration."""
+
+    frames: list[str]
+    interval: float  # In seconds
+
+
+SPINNER_FRAMES: dict[str, SpinnerDefinition] = {
+    "npm_dots": {
+        "frames": ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"],
+        "interval": 0.08,  # 80ms = 12.5 FPS
+    },
+    "claude_stars": {
+        "frames": ["·", "✢", "✳", "✶", "✻", "✽", "✻", "✶", "✳", "✢"],
+        "interval": 0.1,  # 100ms = 10 FPS
+    },
+    "classic": {
+        "frames": ["|", "/", "-", "\\"],
+        "interval": 0.1,
+    },
+    "dots": {
+        "frames": ["⣾", "⣽", "⣻", "⢿", "⡿", "⣟", "⣯", "⣷"],
+        "interval": 0.08,
+    },
+    "dots2": {
+        "frames": ["⠁", "⠂", "⠄", "⡀", "⢀", "⠠", "⠐", "⠈"],
+        "interval": 0.08,
+    },
+    "dots3": {
+        "frames": ["⠋", "⠙", "⠚", "⠞", "⠖", "⠦", "⠴", "⠲", "⠳", "⠓"],
+        "interval": 0.08,
+    },
+    "arrows": {
+        "frames": ["←", "↖", "↑", "↗", "→", "↘", "↓", "↙"],
+        "interval": 0.1,
+    },
+    "circle": {
+        "frames": ["◐", "◓", "◑", "◒"],
+        "interval": 0.12,
+    },
+    "square": {
+        "frames": ["◰", "◳", "◲", "◱"],
+        "interval": 0.12,
+    },
+    "triangle": {
+        "frames": ["◢", "◣", "◤", "◥"],
+        "interval": 0.12,
+    },
+    "bounce": {
+        "frames": ["⠁", "⠂", "⠄", "⠂"],
+        "interval": 0.12,
+    },
+    "box_bounce": {
+        "frames": ["▖", "▘", "▝", "▗"],
+        "interval": 0.12,
+    },
+    "star": {
+        "frames": ["✶", "✸", "✹", "✺", "✹", "✸"],
+        "interval": 0.08,
+    },
+}
+
+
+def validate_frames(frames: list[str]) -> bool:
+    """Validate that frame list is non-empty and contains strings.
+
+    Args:
+        frames: List of frame characters to validate
+
+    Returns:
+        True if frames are valid, False otherwise
+    """
+    return (
+        isinstance(frames, list)
+        and len(frames) > 0
+        and all(isinstance(f, str) and len(f) > 0 for f in frames)
+    )
