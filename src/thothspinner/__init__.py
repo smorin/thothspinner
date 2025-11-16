@@ -3,7 +3,8 @@
 __version__ = "0.5.0"
 
 # Export main orchestrator
-from .rich.thothspinner import ThothSpinner
+# Export states
+from .core.states import ComponentState
 
 # Export individual components
 from .rich.components import (
@@ -13,9 +14,7 @@ from .rich.components import (
     SpinnerComponent,
     TimerComponent,
 )
-
-# Export states
-from .core.states import ComponentState
+from .rich.thothspinner import ThothSpinner
 
 __all__ = [
     "ThothSpinner",

@@ -15,15 +15,15 @@ def main():
     """Demonstrate basic ThothSpinner usage."""
     # Simple initialization with defaults
     spinner = ThothSpinner()
-    
+
     with Live(spinner, console=console, refresh_per_second=20):
         spinner.start()
-        
+
         # Simulate work with progress updates
         for i in range(101):
             spinner.update_progress(current=i, total=100)
             time.sleep(0.05)
-        
+
         # Show success state
         spinner.success("Task completed!")
         time.sleep(2)

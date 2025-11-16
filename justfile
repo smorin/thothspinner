@@ -31,6 +31,10 @@ test-cov:
 example-hint:
     uv run python examples/rich/hint_demo.py
 
+# Run Textual hint widget demo
+example-textual-hint:
+    uv run python examples/textual_hint_demo.py
+
 # Run spinner example
 example-spinner:
     uv run python examples/rich/spinner_demo.py
