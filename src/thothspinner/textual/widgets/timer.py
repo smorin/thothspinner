@@ -10,6 +10,7 @@ from textual.reactive import reactive
 from textual.timer import Timer as TextualTimer
 from textual.widgets import Static
 
+from ...core.color import validate_hex_color
 from ...core.states import ComponentState
 
 TimerFormat = Literal[
@@ -43,10 +44,6 @@ class TimerWidget(Static):
         height: 1;
         padding: 0;
         background: transparent;
-    }
-
-    TimerWidget.hidden {
-        display: none;
     }
 
     TimerWidget.success {
@@ -98,7 +95,7 @@ class TimerWidget(Static):
         self._precision = precision
         self._success_text = success_text
         self._error_text = error_text
-        self.color = self._validate_hex_color(color)
+        self.color = validate_hex_color(color)
 
         # Timer tracking state
         self._timer_active = False
@@ -108,32 +105,7 @@ class TimerWidget(Static):
         self._display_timer: TextualTimer | None = None
 
         if not visible:
-            self.add_class("hidden")
-
-    @staticmethod
-    def _validate_hex_color(color: str) -> str:
-        """Validate hex color format (#RRGGBB).
-
-        Args:
-            color: Color string to validate
-
-        Returns:
-            The validated color string
-
-        Raises:
-            ValueError: If color format is invalid
-        """
-        if not isinstance(color, str):
-            raise ValueError(f"Color must be a string, got {type(color)}")
-        if not color.startswith("#"):
-            raise ValueError(f"Color must start with #, got {color}")
-        if len(color) != 7:
-            raise ValueError(f"Color must be #RRGGBB format, got {color}")
-        try:
-            int(color[1:], 16)
-        except ValueError as err:
-            raise ValueError(f"Invalid hex color: {color}") from err
-        return color
+            self.display = False
 
     @property
     def state(self) -> ComponentState:
@@ -229,21 +201,30 @@ class TimerWidget(Static):
 
     # --- Display timer management ---
 
-    def on_unmount(self) -> None:
-        """Stop display timer when widget is unmounted."""
-        self._stop_display_timer()
-
-    def _start_display_timer(self) -> None:
-        """Start the display refresh timer."""
-        self._stop_display_timer()
+    def on_mount(self) -> None:
+        """Create display timer when widget is mounted."""
         if self._timer_active and not self._paused:
             self._display_timer = self.set_interval(0.1, self._tick)
+        else:
+            self._display_timer = self.set_interval(0.1, self._tick, pause=True)
 
-    def _stop_display_timer(self) -> None:
-        """Stop the display refresh timer."""
+    def on_unmount(self) -> None:
+        """Permanently stop display timer when widget is unmounted."""
         if self._display_timer is not None:
             self._display_timer.stop()
             self._display_timer = None
+
+    def _start_display_timer(self) -> None:
+        """Resume (or create) the display refresh timer."""
+        if self._display_timer is not None:
+            self._display_timer.resume()
+        else:
+            self._display_timer = self.set_interval(0.1, self._tick)
+
+    def _stop_display_timer(self) -> None:
+        """Pause the display refresh timer."""
+        if self._display_timer is not None:
+            self._display_timer.pause()
 
     def _tick(self) -> None:
         """Refresh display on timer tick."""
@@ -321,10 +302,10 @@ class TimerWidget(Static):
         """Render the timer widget."""
         if self._state == ComponentState.SUCCESS:
             display = self._success_text or self._format_time(self._elapsed)
-            return Text(display, style="#00FF00")
+            return Text(display)
         elif self._state == ComponentState.ERROR:
             display = self._error_text or self._format_time(self._elapsed)
-            return Text(display, style="#FF0000")
+            return Text(display)
         else:
             return Text(self._format_time(self.get_elapsed()), style=self.color)
 
@@ -332,7 +313,7 @@ class TimerWidget(Static):
 
     def validate_color(self, color: str) -> str:
         """Validate color before setting."""
-        return self._validate_hex_color(color)
+        return validate_hex_color(color)
 
     def watch_color(self) -> None:
         """React to color changes."""
@@ -384,15 +365,15 @@ class TimerWidget(Static):
 
     def show(self) -> None:
         """Show the timer widget."""
-        self.remove_class("hidden")
+        self.display = True
 
     def hide(self) -> None:
         """Hide the timer widget."""
-        self.add_class("hidden")
+        self.display = False
 
     def toggle(self) -> None:
         """Toggle visibility state."""
-        self.toggle_class("hidden")
+        self.display = not self.display
 
     def set_visible(self, visible: bool) -> None:
         """Set visibility.
@@ -400,7 +381,7 @@ class TimerWidget(Static):
         Args:
             visible: Whether the widget should be visible.
         """
-        self.set_class(not visible, "hidden")
+        self.display = visible
 
     # --- Factory ---
 

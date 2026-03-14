@@ -12,6 +12,7 @@ from textual.reactive import reactive
 from textual.timer import Timer as TextualTimer
 from textual.widgets import Static
 
+from ...core.color import validate_hex_color
 from ...core.states import ComponentState
 from ...rich.components.message import DEFAULT_ACTION_WORDS
 
@@ -36,10 +37,6 @@ class MessageWidget(Static):
         height: 1;
         padding: 0;
         background: transparent;
-    }
-
-    MessageWidget.hidden {
-        display: none;
     }
 
     MessageWidget.success {
@@ -134,7 +131,7 @@ class MessageWidget(Static):
         self._suffix = suffix
         self._success_text = success_text
         self._error_text = error_text
-        self.color = self._validate_hex_color(color)
+        self.color = validate_hex_color(color)
 
         # Internal animation state
         self._current_word: str = ""
@@ -145,32 +142,7 @@ class MessageWidget(Static):
         self._animation_timer: TextualTimer | None = None
 
         if not visible:
-            self.add_class("hidden")
-
-    @staticmethod
-    def _validate_hex_color(color: str) -> str:
-        """Validate hex color format (#RRGGBB).
-
-        Args:
-            color: Color string to validate
-
-        Returns:
-            The validated color string
-
-        Raises:
-            ValueError: If color format is invalid
-        """
-        if not isinstance(color, str):
-            raise ValueError(f"Color must be a string, got {type(color)}")
-        if not color.startswith("#"):
-            raise ValueError(f"Color must start with #, got {color}")
-        if len(color) != 7:
-            raise ValueError(f"Color must be #RRGGBB format, got {color}")
-        try:
-            int(color[1:], 16)
-        except ValueError as err:
-            raise ValueError(f"Invalid hex color: {color}") from err
-        return color
+            self.display = False
 
     # --- Properties ---
 
@@ -217,23 +189,27 @@ class MessageWidget(Static):
 
     def on_mount(self) -> None:
         """Start animation timer when widget is mounted."""
-        self._start_animation_timer()
+        self._animation_timer = self.set_interval(0.1, self._tick)
+        if self._state != ComponentState.IN_PROGRESS:
+            self._animation_timer.pause()
 
     def on_unmount(self) -> None:
         """Stop animation timer when widget is unmounted."""
-        self._stop_animation_timer()
-
-    def _start_animation_timer(self) -> None:
-        """Start the animation refresh timer."""
-        self._stop_animation_timer()
-        if self._state == ComponentState.IN_PROGRESS:
-            self._animation_timer = self.set_interval(0.1, self._tick)
-
-    def _stop_animation_timer(self) -> None:
-        """Stop the animation timer."""
         if self._animation_timer is not None:
             self._animation_timer.stop()
             self._animation_timer = None
+
+    def _start_animation_timer(self) -> None:
+        """Resume the animation refresh timer."""
+        if self._animation_timer is not None:
+            self._animation_timer.resume()
+        else:
+            self._animation_timer = self.set_interval(0.1, self._tick)
+
+    def _stop_animation_timer(self) -> None:
+        """Pause the animation timer."""
+        if self._animation_timer is not None:
+            self._animation_timer.pause()
 
     def _tick(self) -> None:
         """Refresh display on timer tick."""
@@ -314,9 +290,9 @@ class MessageWidget(Static):
     def render(self) -> Text:
         """Render the message widget."""
         if self._state == ComponentState.SUCCESS:
-            return Text(self._success_text, style="#00FF00")
+            return Text(self._success_text)
         elif self._state == ComponentState.ERROR:
-            return Text(self._error_text, style="#FF0000")
+            return Text(self._error_text)
         else:
             current_time = monotonic()
 
@@ -335,7 +311,7 @@ class MessageWidget(Static):
 
     def validate_color(self, color: str) -> str:
         """Validate color before setting."""
-        return self._validate_hex_color(color)
+        return validate_hex_color(color)
 
     def watch_color(self) -> None:
         """React to color changes."""
@@ -367,7 +343,7 @@ class MessageWidget(Static):
         """
         self._action_words.extend(words)
 
-    def update(  # type: ignore[override]
+    def configure(
         self,
         *,
         text: str | None = None,
@@ -434,15 +410,15 @@ class MessageWidget(Static):
 
     def show(self) -> None:
         """Show the message widget."""
-        self.remove_class("hidden")
+        self.display = True
 
     def hide(self) -> None:
         """Hide the message widget."""
-        self.add_class("hidden")
+        self.display = False
 
     def toggle(self) -> None:
         """Toggle visibility state."""
-        self.toggle_class("hidden")
+        self.display = not self.display
 
     def set_visible(self, visible: bool) -> None:
         """Set visibility.
@@ -450,7 +426,7 @@ class MessageWidget(Static):
         Args:
             visible: Whether the widget should be visible.
         """
-        self.set_class(not visible, "hidden")
+        self.display = visible
 
     # --- Factory ---
 

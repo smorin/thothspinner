@@ -24,7 +24,7 @@ def test_initialization_defaults():
     assert not widget.paused
     assert widget._elapsed == 0.0
     assert widget._start_time is None
-    assert "hidden" not in widget.classes
+    assert widget.display is True
 
 
 def test_initialization_custom():
@@ -46,7 +46,7 @@ def test_initialization_custom():
 def test_initialization_hidden():
     """Test hidden initialization."""
     widget = TimerWidget(visible=False)
-    assert "hidden" in widget.classes
+    assert widget.display is False
 
 
 # Test color validation
@@ -208,7 +208,6 @@ def test_render_success_default():
     rendered = widget.render()
     assert isinstance(rendered, Text)
     assert rendered.plain == "10s"
-    assert "#00FF00" in str(rendered.style)
 
 
 def test_render_success_custom_text():
@@ -217,7 +216,6 @@ def test_render_success_custom_text():
     widget._state = ComponentState.SUCCESS
     rendered = widget.render()
     assert rendered.plain == "Complete!"
-    assert "#00FF00" in str(rendered.style)
 
 
 def test_render_error_default():
@@ -227,7 +225,6 @@ def test_render_error_default():
     widget._state = ComponentState.ERROR
     rendered = widget.render()
     assert rendered.plain == "5s"
-    assert "#FF0000" in str(rendered.style)
 
 
 def test_render_error_custom_text():
@@ -236,7 +233,6 @@ def test_render_error_custom_text():
     widget._state = ComponentState.ERROR
     rendered = widget.render()
     assert rendered.plain == "Failed!"
-    assert "#FF0000" in str(rendered.style)
 
 
 # Test timer control methods (sync, no app)
@@ -471,7 +467,7 @@ def test_from_config():
     assert widget.color == "#FFA500"
     assert widget._success_text == "OK"
     assert widget._error_text == "ERR"
-    assert "hidden" in widget.classes
+    assert widget.display is False
 
 
 def test_from_config_defaults():
@@ -533,8 +529,6 @@ def test_feature_parity():
 def test_css_defaults():
     """Test DEFAULT_CSS is properly defined."""
     assert "TimerWidget" in TimerWidget.DEFAULT_CSS
-    assert "hidden" in TimerWidget.DEFAULT_CSS
-    assert "display: none" in TimerWidget.DEFAULT_CSS
     assert "success" in TimerWidget.DEFAULT_CSS
     assert "error" in TimerWidget.DEFAULT_CSS
 
@@ -642,7 +636,7 @@ async def test_state_css_classes():
 
 @pytest.mark.asyncio
 async def test_visibility_toggle():
-    """Test CSS class-based visibility changes."""
+    """Test display property-based visibility changes."""
 
     class VisApp(App):
         def compose(self) -> ComposeResult:
@@ -651,23 +645,23 @@ async def test_visibility_toggle():
     async with VisApp().run_test() as pilot:
         timer = pilot.app.query_one("#timer", TimerWidget)
 
-        assert "hidden" not in timer.classes
+        assert timer.display is True
 
         timer.hide()
         await pilot.pause()
-        assert "hidden" in timer.classes
+        assert timer.display is False
 
         timer.show()
         await pilot.pause()
-        assert "hidden" not in timer.classes
+        assert timer.display is True
 
         timer.toggle()
         await pilot.pause()
-        assert "hidden" in timer.classes
+        assert timer.display is False
 
         timer.set_visible(True)
         await pilot.pause()
-        assert "hidden" not in timer.classes
+        assert timer.display is True
 
 
 @pytest.mark.asyncio

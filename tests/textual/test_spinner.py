@@ -20,7 +20,7 @@ def test_initialization_defaults():
     assert widget.speed == 1.0
     assert widget._success_icon == "✓"
     assert widget._error_icon == "✗"
-    assert "hidden" not in widget.classes
+    assert widget.display
     assert widget._frame_index == 0
 
 
@@ -57,7 +57,7 @@ def test_initialization_invalid_frames():
 def test_initialization_hidden():
     """Test hidden initialization."""
     widget = SpinnerWidget(visible=False)
-    assert "hidden" in widget.classes
+    assert not widget.display
 
 
 def test_unknown_style_falls_back():
@@ -106,7 +106,6 @@ def test_render_success():
     rendered = widget.render()
     assert isinstance(rendered, Text)
     assert rendered.plain == "✓"
-    assert "#00FF00" in str(rendered.style)
 
 
 def test_render_error():
@@ -116,7 +115,6 @@ def test_render_error():
     rendered = widget.render()
     assert isinstance(rendered, Text)
     assert rendered.plain == "✗"
-    assert "#FF0000" in str(rendered.style)
 
 
 def test_render_custom_icons():
@@ -234,7 +232,8 @@ async def test_animation_stops_on_success():
 
         spinner.success()
         await pilot.pause()
-        assert spinner._timer is None
+        assert spinner._timer is not None
+        assert not spinner._timer._active.is_set()
 
         frame_after_success = spinner._frame_index
         await pilot.pause(0.2)
@@ -255,11 +254,13 @@ async def test_animation_restarts_on_reset():
 
         spinner.success()
         await pilot.pause()
-        assert spinner._timer is None
+        assert spinner._timer is not None
+        assert not spinner._timer._active.is_set()
 
         spinner.reset()
         await pilot.pause()
         assert spinner._timer is not None
+        assert spinner._timer._active.is_set()
 
 
 # Test stop and pause
@@ -276,7 +277,8 @@ async def test_stop():
         await pilot.pause(0.1)
 
         spinner.stop()
-        assert spinner._timer is None
+        assert spinner._timer is not None
+        assert not spinner._timer._active.is_set()
         assert spinner.state == ComponentState.IN_PROGRESS
 
         frame_after_stop = spinner._frame_index
@@ -299,7 +301,8 @@ async def test_pause_resume():
         # Pause
         spinner.pause()
         assert spinner.paused is True
-        assert spinner._timer is None
+        assert spinner._timer is not None
+        assert not spinner._timer._active.is_set()
 
         frame_when_paused = spinner._frame_index
         await pilot.pause(0.2)
@@ -309,6 +312,7 @@ async def test_pause_resume():
         spinner.pause()
         assert spinner.paused is False
         assert spinner._timer is not None
+        assert spinner._timer._active.is_set()
 
 
 def test_pause_ignored_in_terminal_state():
@@ -353,7 +357,7 @@ def test_set_speed_invalid():
 # Test visibility
 @pytest.mark.asyncio
 async def test_visibility_toggle():
-    """Test CSS class-based visibility changes."""
+    """Test display property-based visibility changes."""
 
     class VisApp(App):
         def compose(self) -> ComposeResult:
@@ -362,23 +366,23 @@ async def test_visibility_toggle():
     async with VisApp().run_test() as pilot:
         spinner = pilot.app.query_one("#spinner", SpinnerWidget)
 
-        assert "hidden" not in spinner.classes
+        assert spinner.display
 
         spinner.hide()
         await pilot.pause()
-        assert "hidden" in spinner.classes
+        assert not spinner.display
 
         spinner.show()
         await pilot.pause()
-        assert "hidden" not in spinner.classes
+        assert spinner.display
 
         spinner.toggle()
         await pilot.pause()
-        assert "hidden" in spinner.classes
+        assert not spinner.display
 
         spinner.set_visible(True)
         await pilot.pause()
-        assert "hidden" not in spinner.classes
+        assert spinner.display
 
 
 # Test from_config
@@ -398,7 +402,7 @@ def test_from_config():
     assert widget.speed == 1.5
     assert widget._success_icon == "OK"
     assert widget._error_icon == "ERR"
-    assert "hidden" in widget.classes
+    assert not widget.display
 
 
 def test_from_config_custom_frames():
@@ -489,6 +493,7 @@ async def test_app_integration():
         await pilot.pause()
         assert s1.state == ComponentState.IN_PROGRESS
         assert s1._timer is not None
+        assert s1._timer._active.is_set()
 
 
 @pytest.mark.asyncio
@@ -552,7 +557,5 @@ def test_feature_parity():
 def test_css_defaults():
     """Test DEFAULT_CSS is properly defined."""
     assert "SpinnerWidget" in SpinnerWidget.DEFAULT_CSS
-    assert "hidden" in SpinnerWidget.DEFAULT_CSS
-    assert "display: none" in SpinnerWidget.DEFAULT_CSS
     assert "success" in SpinnerWidget.DEFAULT_CSS
     assert "error" in SpinnerWidget.DEFAULT_CSS

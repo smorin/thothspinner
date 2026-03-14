@@ -27,7 +27,7 @@ def test_initialization_defaults():
     assert widget._shimmer_speed == 1.0
     assert widget.reverse_shimmer is False
     assert widget._current_word == ""
-    assert "hidden" not in widget.classes
+    assert widget.display is True
 
 
 def test_initialization_custom():
@@ -64,7 +64,7 @@ def test_initialization_custom():
 def test_initialization_hidden():
     """Test hidden initialization."""
     widget = MessageWidget(visible=False)
-    assert "hidden" in widget.classes
+    assert widget.display is False
 
 
 def test_initialization_word_list_array():
@@ -221,28 +221,28 @@ def test_random_interval_range():
     assert 1.0 <= widget._next_interval <= 3.0
 
 
-def test_update_with_custom_text():
-    """Test update method with custom text."""
+def test_configure_with_custom_text():
+    """Test configure method with custom text."""
     widget = MessageWidget()
-    widget.update(text="CustomText")
+    widget.configure(text="CustomText")
     assert widget._current_word == "CustomText"
     assert widget._last_word_change is None
 
 
-def test_update_trigger_new():
-    """Test update method to trigger new word."""
+def test_configure_trigger_new():
+    """Test configure method to trigger new word."""
     widget = MessageWidget(action_words=["Word1", "Word2"])
-    widget.update(trigger_new=True)
+    widget.configure(trigger_new=True)
     assert widget._current_word in ["Word1", "Word2"]
     assert widget._last_word_change is None
 
 
-def test_update_reverse_shimmer():
-    """Test update method changes shimmer direction."""
+def test_configure_reverse_shimmer():
+    """Test configure method changes shimmer direction."""
     widget = MessageWidget()
-    widget.update(reverse_shimmer=True)
+    widget.configure(reverse_shimmer=True)
     assert widget.reverse_shimmer is True
-    widget.update(reverse_shimmer=False)
+    widget.configure(reverse_shimmer=False)
     assert widget.reverse_shimmer is False
 
 
@@ -326,7 +326,6 @@ def test_render_success():
     widget._state = ComponentState.SUCCESS
     rendered = widget.render()
     assert rendered.plain == "Complete!"
-    assert "#00FF00" in str(rendered.style)
 
 
 def test_render_success_custom_text():
@@ -342,7 +341,6 @@ def test_render_error():
     widget._state = ComponentState.ERROR
     rendered = widget.render()
     assert rendered.plain == "Failed"
-    assert "#FF0000" in str(rendered.style)
 
 
 def test_render_error_custom_text():
@@ -443,7 +441,7 @@ def test_from_config():
     assert widget._suffix == "!!!"
     assert widget._success_text == "OK"
     assert widget._error_text == "ERR"
-    assert "hidden" in widget.classes
+    assert widget.display is False
 
 
 def test_from_config_defaults():
@@ -475,7 +473,7 @@ def test_feature_parity():
     assert hasattr(widget, "extend_action_words")
 
     # Control methods
-    assert hasattr(widget, "update")
+    assert hasattr(widget, "configure")
     assert hasattr(widget, "success")
     assert hasattr(widget, "error")
     assert hasattr(widget, "reset")
@@ -498,8 +496,6 @@ def test_feature_parity():
 def test_css_defaults():
     """Test DEFAULT_CSS is properly defined."""
     assert "MessageWidget" in MessageWidget.DEFAULT_CSS
-    assert "hidden" in MessageWidget.DEFAULT_CSS
-    assert "display: none" in MessageWidget.DEFAULT_CSS
     assert "success" in MessageWidget.DEFAULT_CSS
     assert "error" in MessageWidget.DEFAULT_CSS
 
@@ -522,11 +518,11 @@ def test_edge_cases_long_words():
     assert long_word in rendered.plain
 
 
-def test_rapid_updates():
-    """Test rapid successive updates."""
+def test_rapid_configures():
+    """Test rapid successive configure calls."""
     widget = MessageWidget()
     for i in range(10):
-        widget.update(text=f"Update{i}")
+        widget.configure(text=f"Update{i}")
         assert widget._current_word == f"Update{i}"
 
 
@@ -605,7 +601,7 @@ async def test_state_css_classes():
 
 @pytest.mark.asyncio
 async def test_visibility_toggle():
-    """Test CSS class-based visibility changes."""
+    """Test display property-based visibility changes."""
 
     class VisApp(App):
         def compose(self) -> ComposeResult:
@@ -614,23 +610,23 @@ async def test_visibility_toggle():
     async with VisApp().run_test() as pilot:
         msg = pilot.app.query_one("#msg", MessageWidget)
 
-        assert "hidden" not in msg.classes
+        assert msg.display is True
 
         msg.hide()
         await pilot.pause()
-        assert "hidden" in msg.classes
+        assert msg.display is False
 
         msg.show()
         await pilot.pause()
-        assert "hidden" not in msg.classes
+        assert msg.display is True
 
         msg.toggle()
         await pilot.pause()
-        assert "hidden" in msg.classes
+        assert msg.display is False
 
         msg.set_visible(True)
         await pilot.pause()
-        assert "hidden" not in msg.classes
+        assert msg.display is True
 
 
 @pytest.mark.asyncio
@@ -707,7 +703,8 @@ async def test_success_stops_animation():
 
         msg.success()
         await pilot.pause()
-        assert msg._animation_timer is None
+        assert msg._animation_timer is not None
+        assert not msg._animation_timer._active.is_set()
 
 
 @pytest.mark.asyncio
@@ -724,7 +721,8 @@ async def test_error_stops_animation():
 
         msg.error()
         await pilot.pause()
-        assert msg._animation_timer is None
+        assert msg._animation_timer is not None
+        assert not msg._animation_timer._active.is_set()
 
 
 @pytest.mark.asyncio
@@ -740,8 +738,10 @@ async def test_reset_restarts_animation():
 
         msg.success()
         await pilot.pause()
-        assert msg._animation_timer is None
+        assert msg._animation_timer is not None
+        assert not msg._animation_timer._active.is_set()
 
         msg.reset()
         await pilot.pause()
         assert msg._animation_timer is not None
+        assert msg._animation_timer._active.is_set()

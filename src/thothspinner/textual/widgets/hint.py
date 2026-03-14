@@ -8,6 +8,9 @@ from rich.text import Text
 from textual.reactive import reactive
 from textual.widgets import Static
 
+from ...core.color import validate_hex_color
+from ...core.states import ComponentState
+
 
 class HintWidget(Static):
     """A hint widget for displaying helper text in Textual apps."""
@@ -18,10 +21,6 @@ class HintWidget(Static):
         height: 1;
         padding: 0;
         background: transparent;
-    }
-
-    HintWidget.hidden {
-        display: none;
     }
 
     HintWidget.error {
@@ -41,6 +40,7 @@ class HintWidget(Static):
     text = reactive("")
     color = reactive("#888888")
     icon = reactive("")
+    _state = reactive(ComponentState.IN_PROGRESS)
 
     def __init__(
         self,
@@ -71,40 +71,20 @@ class HintWidget(Static):
             classes=classes,
         )
         self.text = text
-        self.color = self._validate_hex_color(color)
+        self.color = validate_hex_color(color)
         self.icon = icon
         if not visible:
-            self.add_class("hidden")
+            self.display = False
 
-    @staticmethod
-    def _validate_hex_color(color: str) -> str:
-        """Validate hex color format (#RRGGBB).
-
-        Args:
-            color: Color string to validate
-
-        Returns:
-            The validated color string
-
-        Raises:
-            ValueError: If color format is invalid
-        """
-        if not isinstance(color, str):
-            raise ValueError(f"Color must be a string, got {type(color)}")
-        if not color.startswith("#"):
-            raise ValueError(f"Color must start with #, got {color}")
-        if len(color) != 7:
-            raise ValueError(f"Color must be #RRGGBB format, got {color}")
-        try:
-            int(color[1:], 16)
-        except ValueError as err:
-            raise ValueError(f"Invalid hex color: {color}") from err
-        return color
+    @property
+    def state(self) -> ComponentState:
+        """Read-only access to the current component state."""
+        return self._state
 
     def render(self) -> Text:
         """Render the hint text.
 
-        Note: Visibility is handled by CSS classes, not in render.
+        Note: Visibility is handled by the display property.
         """
         content = self._build_content()
         return Text(content, style=self.color)
@@ -117,7 +97,7 @@ class HintWidget(Static):
 
     def validate_color(self, color: str) -> str:
         """Validate color before setting."""
-        return self._validate_hex_color(color)
+        return validate_hex_color(color)
 
     def watch_text(self) -> None:
         """React to text changes."""
@@ -129,6 +109,18 @@ class HintWidget(Static):
 
     def watch_icon(self) -> None:
         """React to icon changes."""
+        self.refresh()
+
+    def watch__state(self, new_state: ComponentState) -> None:
+        """React to state changes."""
+        if new_state == ComponentState.IN_PROGRESS:
+            self.remove_class("success", "error")
+        elif new_state == ComponentState.SUCCESS:
+            self.remove_class("error")
+            self.add_class("success")
+        elif new_state == ComponentState.ERROR:
+            self.remove_class("success")
+            self.add_class("error")
         self.refresh()
 
     def set_icon(self, icon: str) -> None:
@@ -144,24 +136,55 @@ class HintWidget(Static):
         self.icon = ""
 
     def show(self) -> None:
-        """Show the hint widget using CSS classes."""
-        self.remove_class("hidden")
+        """Show the hint widget."""
+        self.display = True
 
     def hide(self) -> None:
-        """Hide the hint widget using CSS classes."""
-        self.add_class("hidden")
+        """Hide the hint widget."""
+        self.display = False
 
     def toggle(self) -> None:
-        """Toggle visibility state using CSS classes."""
-        self.toggle_class("hidden")
+        """Toggle visibility state."""
+        self.display = not self.display
 
     def set_visible(self, visible: bool) -> None:
-        """Set visibility using Textual's set_class method.
+        """Set visibility.
 
         Args:
             visible: Whether the widget should be visible
         """
-        self.set_class(not visible, "hidden")
+        self.display = visible
+
+    def success(self, text: str | None = None) -> None:
+        """Transition to success state.
+
+        Args:
+            text: Optional custom success text.
+        """
+        if not self._state.can_transition_to(ComponentState.SUCCESS):
+            return
+        if text is not None:
+            self.text = text
+        self.display = False
+        self._state = ComponentState.SUCCESS
+
+    def error(self, text: str | None = None) -> None:
+        """Transition to error state.
+
+        Args:
+            text: Optional custom error text.
+        """
+        if not self._state.can_transition_to(ComponentState.ERROR):
+            return
+        if text is not None:
+            self.text = text
+        self.display = False
+        self._state = ComponentState.ERROR
+
+    def reset(self) -> None:
+        """Reset to in_progress state and show the widget."""
+        self.display = True
+        self._state = ComponentState.IN_PROGRESS
 
     @classmethod
     def from_config(cls, config: dict) -> HintWidget:
@@ -184,7 +207,7 @@ class HintWidget(Static):
             icon=config.get("icon", ""),
         )
 
-    def update(self, **kwargs) -> None:
+    def configure(self, **kwargs) -> None:
         """Batch update properties.
 
         Args:
@@ -192,7 +215,7 @@ class HintWidget(Static):
         """
         for key, value in kwargs.items():
             if key == "color":
-                value = self._validate_hex_color(value)
+                value = validate_hex_color(value)
             if hasattr(self, key):
                 setattr(self, key, value)
 
@@ -202,7 +225,7 @@ class HintWidget(Static):
         Args:
             duration: Animation duration in seconds
         """
-        self.remove_class("hidden")
+        self.display = True
         self.styles.opacity = 0
         self.styles.animate("opacity", value=1.0, duration=duration)
 
@@ -214,7 +237,7 @@ class HintWidget(Static):
         """
 
         def hide_after_fade() -> None:
-            self.add_class("hidden")
+            self.display = False
 
         self.styles.animate("opacity", value=0.0, duration=duration, on_complete=hide_after_fade)
 
@@ -225,5 +248,5 @@ class HintWidget(Static):
             new_color: Target hex color
             duration: Animation duration in seconds
         """
-        self.color = self._validate_hex_color(new_color)
+        self.color = validate_hex_color(new_color)
         # Color animation handled by CSS transitions

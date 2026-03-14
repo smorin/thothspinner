@@ -20,7 +20,7 @@ def test_initialization_defaults():
     assert widget.state == ComponentState.IN_PROGRESS
     assert widget._success_text == "100%"
     assert widget._error_text == "Failed"
-    assert "hidden" not in widget.classes
+    assert widget.display is True
 
 
 def test_initialization_custom():
@@ -46,7 +46,7 @@ def test_initialization_custom():
 def test_initialization_hidden():
     """Test hidden initialization."""
     widget = ProgressWidget(visible=False)
-    assert "hidden" in widget.classes
+    assert widget.display is False
 
 
 def test_initialization_clamps_current():
@@ -153,7 +153,6 @@ def test_render_success():
     rendered = widget.render()
     assert isinstance(rendered, Text)
     assert rendered.plain == "100%"
-    assert "#00FF00" in str(rendered.style)
 
 
 def test_render_error():
@@ -163,7 +162,6 @@ def test_render_error():
     rendered = widget.render()
     assert isinstance(rendered, Text)
     assert rendered.plain == "Failed"
-    assert "#FF0000" in str(rendered.style)
 
 
 def test_render_custom_state_text():
@@ -361,23 +359,23 @@ async def test_visibility_toggle():
     async with VisApp().run_test() as pilot:
         progress = pilot.app.query_one("#progress", ProgressWidget)
 
-        assert "hidden" not in progress.classes
+        assert progress.display is True
 
         progress.hide()
         await pilot.pause()
-        assert "hidden" in progress.classes
+        assert progress.display is False
 
         progress.show()
         await pilot.pause()
-        assert "hidden" not in progress.classes
+        assert progress.display is True
 
         progress.toggle()
         await pilot.pause()
-        assert "hidden" in progress.classes
+        assert progress.display is False
 
         progress.set_visible(True)
         await pilot.pause()
-        assert "hidden" not in progress.classes
+        assert progress.display is True
 
 
 # Test from_config
@@ -401,7 +399,7 @@ def test_from_config():
     assert widget.zero_pad is True
     assert widget._success_text == "OK"
     assert widget._error_text == "ERR"
-    assert "hidden" in widget.classes
+    assert widget.display is False
 
 
 def test_from_config_defaults():
@@ -463,8 +461,6 @@ def test_feature_parity():
 def test_css_defaults():
     """Test DEFAULT_CSS is properly defined."""
     assert "ProgressWidget" in ProgressWidget.DEFAULT_CSS
-    assert "hidden" in ProgressWidget.DEFAULT_CSS
-    assert "display: none" in ProgressWidget.DEFAULT_CSS
     assert "success" in ProgressWidget.DEFAULT_CSS
     assert "error" in ProgressWidget.DEFAULT_CSS
 

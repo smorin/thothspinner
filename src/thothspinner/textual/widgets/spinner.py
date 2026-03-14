@@ -9,6 +9,7 @@ from textual.reactive import reactive
 from textual.timer import Timer
 from textual.widgets import Static
 
+from ...core.color import validate_hex_color
 from ...core.states import ComponentState
 from ...rich.spinners.frames import SPINNER_FRAMES, validate_frames
 
@@ -31,10 +32,6 @@ class SpinnerWidget(Static):
         height: 1;
         padding: 0;
         background: transparent;
-    }
-
-    SpinnerWidget.hidden {
-        display: none;
     }
 
     SpinnerWidget.success {
@@ -99,7 +96,7 @@ class SpinnerWidget(Static):
             self._interval = spinner_def["interval"]
 
         self._style_name = style
-        self.color = self._validate_hex_color(color)
+        self.color = validate_hex_color(color)
         self._success_icon = success_icon
         self._error_icon = error_icon
         self._speed = speed
@@ -107,32 +104,7 @@ class SpinnerWidget(Static):
         self._timer: Timer | None = None
 
         if not visible:
-            self.add_class("hidden")
-
-    @staticmethod
-    def _validate_hex_color(color: str) -> str:
-        """Validate hex color format (#RRGGBB).
-
-        Args:
-            color: Color string to validate
-
-        Returns:
-            The validated color string
-
-        Raises:
-            ValueError: If color format is invalid
-        """
-        if not isinstance(color, str):
-            raise ValueError(f"Color must be a string, got {type(color)}")
-        if not color.startswith("#"):
-            raise ValueError(f"Color must start with #, got {color}")
-        if len(color) != 7:
-            raise ValueError(f"Color must be #RRGGBB format, got {color}")
-        try:
-            int(color[1:], 16)
-        except ValueError as err:
-            raise ValueError(f"Invalid hex color: {color}") from err
-        return color
+            self.display = False
 
     @property
     def state(self) -> ComponentState:
@@ -161,24 +133,29 @@ class SpinnerWidget(Static):
 
     def on_mount(self) -> None:
         """Start animation timer when widget is mounted."""
-        self._start_timer()
+        should_pause = self._state != ComponentState.IN_PROGRESS or self._paused
+        effective_interval = self._interval / self._speed
+        self._timer = self.set_interval(effective_interval, self._advance_frame, pause=should_pause)
 
     def on_unmount(self) -> None:
         """Stop animation timer when widget is unmounted."""
-        self._stop_timer()
-
-    def _start_timer(self) -> None:
-        """Start or restart the animation timer."""
-        self._stop_timer()
-        if self._state == ComponentState.IN_PROGRESS and not self._paused:
-            effective_interval = self._interval / self._speed
-            self._timer = self.set_interval(effective_interval, self._advance_frame)
-
-    def _stop_timer(self) -> None:
-        """Stop the animation timer if running."""
         if self._timer is not None:
             self._timer.stop()
             self._timer = None
+
+    def _start_timer(self) -> None:
+        """Start or resume the animation timer."""
+        if self._state == ComponentState.IN_PROGRESS and not self._paused:
+            if self._timer is not None:
+                self._timer.resume()
+            elif self.is_mounted:
+                effective_interval = self._interval / self._speed
+                self._timer = self.set_interval(effective_interval, self._advance_frame)
+
+    def _stop_timer(self) -> None:
+        """Pause the animation timer if running."""
+        if self._timer is not None:
+            self._timer.pause()
 
     def _advance_frame(self) -> None:
         """Advance to the next animation frame."""
@@ -187,16 +164,16 @@ class SpinnerWidget(Static):
     def render(self) -> Text:
         """Render the spinner widget."""
         if self._state == ComponentState.SUCCESS:
-            return Text(self._success_icon, style="#00FF00")
+            return Text(self._success_icon)
         elif self._state == ComponentState.ERROR:
-            return Text(self._error_icon, style="#FF0000")
+            return Text(self._error_icon)
         else:
             frame = self._frames[self._frame_index]
             return Text(frame, style=self.color)
 
     def validate_color(self, color: str) -> str:
         """Validate color before setting."""
-        return self._validate_hex_color(color)
+        return validate_hex_color(color)
 
     def watch_color(self) -> None:
         """React to color changes."""
@@ -280,19 +257,49 @@ class SpinnerWidget(Static):
             raise ValueError(f"Speed must be positive, got {speed}")
         self._speed = speed
         if self._state == ComponentState.IN_PROGRESS and not self._paused and self.is_mounted:
-            self._start_timer()
+            # Stop and recreate timer since interval changes
+            if self._timer is not None:
+                self._timer.stop()
+                self._timer = None
+            effective_interval = self._interval / self._speed
+            self._timer = self.set_interval(effective_interval, self._advance_frame)
+
+    def set_style(self, style: str) -> None:
+        """Change the spinner animation style at runtime.
+
+        Args:
+            style: Name of a built-in spinner style from SPINNER_FRAMES.
+
+        Raises:
+            KeyError: If the style name is not found in SPINNER_FRAMES.
+        """
+        if style not in SPINNER_FRAMES:
+            raise KeyError(f"Unknown spinner style: {style!r}")
+        spinner_def = SPINNER_FRAMES[style]
+        self._frames = spinner_def["frames"]
+        self._interval = spinner_def["interval"]
+        self._style_name = style
+        self._frame_index = 0
+        if self.is_mounted:
+            # Recreate timer since interval may have changed
+            if self._timer is not None:
+                self._timer.stop()
+                self._timer = None
+            if self._state == ComponentState.IN_PROGRESS and not self._paused:
+                effective_interval = self._interval / self._speed
+                self._timer = self.set_interval(effective_interval, self._advance_frame)
 
     def show(self) -> None:
         """Show the spinner widget."""
-        self.remove_class("hidden")
+        self.display = True
 
     def hide(self) -> None:
         """Hide the spinner widget."""
-        self.add_class("hidden")
+        self.display = False
 
     def toggle(self) -> None:
         """Toggle visibility state."""
-        self.toggle_class("hidden")
+        self.display = not self.display
 
     def set_visible(self, visible: bool) -> None:
         """Set visibility.
@@ -300,7 +307,7 @@ class SpinnerWidget(Static):
         Args:
             visible: Whether the widget should be visible
         """
-        self.set_class(not visible, "hidden")
+        self.display = visible
 
     @classmethod
     def from_config(cls, config: dict[str, Any]) -> SpinnerWidget:

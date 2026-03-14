@@ -3,16 +3,24 @@
 Unified orchestrator that composes all 5 spinner components (Spinner, Message,
 Progress, Timer, Hint) into a single coordinated Textual widget with unified
 state management, configuration hierarchy, and component access.
+
+Design notes (R8):
+    This orchestrator uses imperative state propagation (_propagate_state calling
+    each child's success/error/reset methods) rather than Textual's data_bind().
+    data_bind() maps reactive-to-reactive, but our children need different behavior
+    on state change (spinner shows icon, timer freezes, message shows text, hint
+    hides). Imperative propagation is the correct pattern here.
 """
 
 from __future__ import annotations
 
 from typing import Any, ClassVar
 
+from textual.app import ComposeResult
 from textual.containers import Horizontal
 from textual.reactive import reactive
 from textual.timer import Timer as TextualTimer
-from textual.widgets import Static
+from textual.widget import Widget
 
 from ...core.states import ComponentState
 from .hint import HintWidget
@@ -22,7 +30,7 @@ from .spinner import SpinnerWidget
 from .timer import TimerWidget
 
 
-class ThothSpinnerWidget(Static):
+class ThothSpinnerWidget(Widget, can_focus=False):
     """Unified orchestrator widget composing all 5 spinner components.
 
     Combines SpinnerWidget, MessageWidget, ProgressWidget, TimerWidget, and
@@ -40,10 +48,10 @@ class ThothSpinnerWidget(Static):
         error_duration: Auto-clear duration for error state in seconds.
         config: Full configuration dict (overrides kwargs).
         render_order: Component display order list.
-        visible: Whether the widget is initially visible.
         name: Optional name for the widget.
         id: Optional ID for the widget.
         classes: Optional CSS classes.
+        disabled: Whether the widget is disabled.
 
     Example:
         >>> from thothspinner.textual.widgets import ThothSpinnerWidget
@@ -56,10 +64,7 @@ class ThothSpinnerWidget(Static):
         height: 1;
         padding: 0;
         background: transparent;
-    }
-
-    ThothSpinnerWidget.hidden {
-        display: none;
+        layout: horizontal;
     }
 
     ThothSpinnerWidget Horizontal {
@@ -96,13 +101,14 @@ class ThothSpinnerWidget(Static):
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
+        disabled: bool = False,
     ) -> None:
         """Initialize the ThothSpinnerWidget."""
         super().__init__(
-            "",
             name=name,
             id=id,
             classes=classes,
+            disabled=disabled,
         )
 
         # Store durations for auto-clear
@@ -133,11 +139,11 @@ class ThothSpinnerWidget(Static):
             self._render_order = self.VALID_COMPONENTS
 
         # Eagerly create all child widgets
-        self._components: dict[str, Static] = {}
+        self._components: dict[str, Widget] = {}
         self._create_all_components()
 
         if not visible:
-            self.add_class("hidden")
+            self.display = False
 
     def _build_config(self, config_dict: dict[str, Any], kwargs: dict[str, Any]) -> dict[str, Any]:
         """Build configuration from kwargs and optional config dict.
@@ -220,7 +226,7 @@ class ThothSpinnerWidget(Static):
     def _resolve_config(self, component_type: str) -> dict[str, Any]:
         """Resolve configuration for a component with inheritance.
 
-        Config hierarchy: defaults → element-specific overrides.
+        Config hierarchy: defaults -> element-specific overrides.
 
         Args:
             component_type: Type of component.
@@ -259,7 +265,7 @@ class ThothSpinnerWidget(Static):
             "hint": HintWidget.from_config(hint_config),
         }
 
-    def compose(self):
+    def compose(self) -> ComposeResult:
         """Yield child widgets in render order within a Horizontal container."""
         with Horizontal():
             for name in self._render_order:
@@ -298,7 +304,7 @@ class ThothSpinnerWidget(Static):
         """Access the hint child widget."""
         return self._components["hint"]  # type: ignore[return-value]
 
-    def get_component(self, component_type: str) -> Static:
+    def get_component(self, component_type: str) -> Widget:
         """Get a component by type name.
 
         Args:
@@ -397,16 +403,16 @@ class ThothSpinnerWidget(Static):
             if component is not None and hasattr(component, "reset"):
                 component.reset()  # type: ignore[union-attr]
             if component is not None:
-                component.remove_class("hidden")
+                component.display = True
 
     def clear(self) -> None:
         """Hide all child widgets and cancel auto-clear timer."""
         self._cancel_clear_timer()
         for component in self._components.values():
-            component.add_class("hidden")
+            component.display = False
 
     def stop(self) -> None:
-        """Alias for clear() — stop and hide display."""
+        """Alias for clear() -- stop and hide display."""
         self.clear()
 
     def _propagate_state(self, state: ComponentState, message: str | None = None) -> None:
@@ -485,7 +491,7 @@ class ThothSpinnerWidget(Static):
             text: New message text to display.
         """
         message = self._components["message"]
-        message.update(text=text)  # type: ignore[union-attr]
+        message.configure(text=text)  # type: ignore[union-attr]
 
     def set_hint(self, *, text: str) -> None:
         """Update the hint component text.
@@ -497,23 +503,17 @@ class ThothSpinnerWidget(Static):
         hint.text = text  # type: ignore[union-attr]
 
     def set_spinner_style(self, *, style: str) -> None:
-        """Change the spinner style.
+        """Change the spinner animation style at runtime.
 
-        Creates a new SpinnerWidget with the new style and replaces the old one.
+        Mutates the existing SpinnerWidget in-place rather than replacing it,
+        avoiding issues with widget lifecycle and DOM ownership.
 
         Args:
             style: Built-in spinner style name.
         """
-        config = self._resolve_config("spinner")
-        config["style"] = style
-        new_spinner = SpinnerWidget.from_config(config)
-
-        old_spinner = self._components["spinner"]
-        self._components["spinner"] = new_spinner
-
-        # If mounted, swap in the DOM
-        if self.is_mounted and old_spinner.is_mounted:
-            old_spinner.replace(new_spinner)
+        spinner = self._components["spinner"]
+        if hasattr(spinner, "set_style"):
+            spinner.set_style(style)  # type: ignore[union-attr]
 
     def set_shimmer_direction(self, *, direction: str) -> None:
         """Control shimmer direction on the message widget.
@@ -536,8 +536,8 @@ class ThothSpinnerWidget(Static):
             KeyError: If component_type is invalid.
         """
         component = self.get_component(component_type)
-        if hasattr(component, "update"):
-            component.update(**kwargs)  # type: ignore[call-arg]
+        if hasattr(component, "configure"):
+            component.configure(**kwargs)  # type: ignore[union-attr]
         else:
             for key, value in kwargs.items():
                 if hasattr(component, key):
@@ -547,15 +547,15 @@ class ThothSpinnerWidget(Static):
 
     def show(self) -> None:
         """Show the orchestrator widget."""
-        self.remove_class("hidden")
+        self.display = True
 
     def hide(self) -> None:
         """Hide the orchestrator widget."""
-        self.add_class("hidden")
+        self.display = False
 
     def toggle(self) -> None:
         """Toggle visibility state."""
-        self.toggle_class("hidden")
+        self.display = not self.display
 
     def set_visible(self, visible: bool) -> None:
         """Set visibility.
@@ -563,7 +563,7 @@ class ThothSpinnerWidget(Static):
         Args:
             visible: Whether the widget should be visible.
         """
-        self.set_class(not visible, "hidden")
+        self.display = visible
 
     # --- Factory ---
 
@@ -572,13 +572,16 @@ class ThothSpinnerWidget(Static):
         """Create ThothSpinnerWidget from configuration dict.
 
         Args:
-            config: Configuration dictionary.
+            config: Configuration dictionary (not mutated).
             **kwargs: Additional keyword arguments override config.
 
         Returns:
             ThothSpinnerWidget instance.
         """
-        # Extract top-level kwargs from config
+        # R5: Copy to avoid mutating the caller's dict
+        config = config.copy()
+
+        # Extract top-level kwargs from config copy
         init_kwargs: dict[str, Any] = {}
         if "spinner_style" in config:
             init_kwargs["spinner_style"] = config.pop("spinner_style")

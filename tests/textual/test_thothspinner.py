@@ -54,9 +54,9 @@ class TestInitialization:
         assert widget.hint.text == "Press q to quit"
 
     def test_initialization_hidden(self):
-        """visible=False adds hidden class."""
+        """visible=False sets display to False."""
         widget = ThothSpinnerWidget(visible=False)
-        assert "hidden" in widget.classes
+        assert widget.display is False
 
     def test_initialization_durations(self):
         """success_duration and error_duration stored."""
@@ -215,6 +215,8 @@ class TestStateManagement:
         assert widget.message.state == ComponentState.SUCCESS
         assert widget.progress.state == ComponentState.SUCCESS
         assert widget.timer.state == ComponentState.SUCCESS
+        assert widget.hint.state == ComponentState.SUCCESS
+        assert widget.hint.display is False
 
     def test_error_transition(self):
         """Error transitions orchestrator and all children."""
@@ -225,6 +227,8 @@ class TestStateManagement:
         assert widget.message.state == ComponentState.ERROR
         assert widget.progress.state == ComponentState.ERROR
         assert widget.timer.state == ComponentState.ERROR
+        assert widget.hint.state == ComponentState.ERROR
+        assert widget.hint.display is False
 
     def test_success_with_message(self):
         """Success with message passed to children."""
@@ -268,14 +272,14 @@ class TestStateManagement:
         widget = ThothSpinnerWidget()
         widget.clear()
         for component in widget._components.values():
-            assert "hidden" in component.classes
+            assert not component.display
 
     def test_stop_aliases_clear(self):
         """Stop is an alias for clear."""
         widget = ThothSpinnerWidget()
         widget.stop()
         for component in widget._components.values():
-            assert "hidden" in component.classes
+            assert not component.display
 
     def test_start_resets_to_in_progress(self):
         """Start sets state to IN_PROGRESS."""
@@ -388,41 +392,48 @@ class TestFactory:
         widget = ThothSpinnerWidget.from_dict(config)
         assert widget.hint.text == "nested"
 
+    def test_from_dict_does_not_mutate_config(self):
+        """from_dict does not mutate the caller's config dict."""
+        config = {"spinner_style": "dots", "hint_text": "press q"}
+        original = config.copy()
+        ThothSpinnerWidget.from_dict(config)
+        assert config == original  # Not mutated
+
 
 class TestVisibility:
     """Test visibility methods."""
 
     def test_show(self):
-        """show() removes hidden class."""
+        """show() makes widget visible."""
         widget = ThothSpinnerWidget(visible=False)
         widget.show()
-        assert "hidden" not in widget.classes
+        assert widget.display is True
 
     def test_hide(self):
-        """hide() adds hidden class."""
+        """hide() hides widget."""
         widget = ThothSpinnerWidget()
         widget.hide()
-        assert "hidden" in widget.classes
+        assert widget.display is False
 
     def test_toggle(self):
-        """toggle() toggles hidden class."""
+        """toggle() toggles display property."""
         widget = ThothSpinnerWidget()
         widget.toggle()
-        assert "hidden" in widget.classes
+        assert widget.display is False
         widget.toggle()
-        assert "hidden" not in widget.classes
+        assert widget.display is True
 
     def test_set_visible_true(self):
-        """set_visible(True) removes hidden."""
+        """set_visible(True) makes widget visible."""
         widget = ThothSpinnerWidget(visible=False)
         widget.set_visible(True)
-        assert "hidden" not in widget.classes
+        assert widget.display is True
 
     def test_set_visible_false(self):
-        """set_visible(False) adds hidden."""
+        """set_visible(False) hides widget."""
         widget = ThothSpinnerWidget()
         widget.set_visible(False)
-        assert "hidden" in widget.classes
+        assert widget.display is False
 
 
 class TestRepr:
@@ -578,7 +589,7 @@ async def test_auto_clear_success():
         await pilot.pause(delay=0.2)
         # Children should be hidden
         for component in thoth._components.values():
-            assert "hidden" in component.classes
+            assert not component.display
 
 
 @pytest.mark.asyncio
@@ -593,7 +604,7 @@ async def test_auto_clear_error():
         # Wait for auto-clear
         await pilot.pause(delay=0.2)
         for component in thoth._components.values():
-            assert "hidden" in component.classes
+            assert not component.display
 
 
 @pytest.mark.asyncio
@@ -621,10 +632,10 @@ async def test_visibility_toggle_in_app():
         thoth = app.query_one(ThothSpinnerWidget)
         thoth.hide()
         await pilot.pause()
-        assert "hidden" in thoth.classes
+        assert thoth.display is False
         thoth.show()
         await pilot.pause()
-        assert "hidden" not in thoth.classes
+        assert thoth.display is True
 
 
 @pytest.mark.asyncio
@@ -637,7 +648,7 @@ async def test_clear_hides_all_in_app():
         thoth.clear()
         await pilot.pause()
         for component in thoth._components.values():
-            assert "hidden" in component.classes
+            assert not component.display
 
 
 @pytest.mark.asyncio

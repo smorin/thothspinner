@@ -8,6 +8,7 @@ from rich.text import Text
 from textual.reactive import reactive
 from textual.widgets import Static
 
+from ...core.color import validate_hex_color
 from ...core.states import ComponentState
 
 FormatStyle = Literal["fraction", "percentage", "of_text", "count_only", "ratio"]
@@ -30,10 +31,6 @@ class ProgressWidget(Static):
         height: 1;
         padding: 0;
         background: transparent;
-    }
-
-    ProgressWidget.hidden {
-        display: none;
     }
 
     ProgressWidget.success {
@@ -91,37 +88,12 @@ class ProgressWidget(Static):
         self._zero_pad = zero_pad
         self._success_text = success_text
         self._error_text = error_text
-        self.color = self._validate_hex_color(color)
+        self.color = validate_hex_color(color)
         self.total = total
         self.current = min(max(0, current), total)
 
         if not visible:
-            self.add_class("hidden")
-
-    @staticmethod
-    def _validate_hex_color(color: str) -> str:
-        """Validate hex color format (#RRGGBB).
-
-        Args:
-            color: Color string to validate
-
-        Returns:
-            The validated color string
-
-        Raises:
-            ValueError: If color format is invalid
-        """
-        if not isinstance(color, str):
-            raise ValueError(f"Color must be a string, got {type(color)}")
-        if not color.startswith("#"):
-            raise ValueError(f"Color must start with #, got {color}")
-        if len(color) != 7:
-            raise ValueError(f"Color must be #RRGGBB format, got {color}")
-        try:
-            int(color[1:], 16)
-        except ValueError as err:
-            raise ValueError(f"Invalid hex color: {color}") from err
-        return color
+            self.display = False
 
     @property
     def state(self) -> ComponentState:
@@ -163,15 +135,15 @@ class ProgressWidget(Static):
     def render(self) -> Text:
         """Render the progress widget."""
         if self._state == ComponentState.SUCCESS:
-            return Text(self._success_text, style="#00FF00")
+            return Text(self._success_text)
         elif self._state == ComponentState.ERROR:
-            return Text(self._error_text, style="#FF0000")
+            return Text(self._error_text)
         else:
             return Text(self._format_progress(), style=self.color)
 
     def validate_color(self, color: str) -> str:
         """Validate color before setting."""
-        return self._validate_hex_color(color)
+        return validate_hex_color(color)
 
     def watch_current(self) -> None:
         """React to current value changes."""
@@ -269,15 +241,15 @@ class ProgressWidget(Static):
     # Visibility methods
     def show(self) -> None:
         """Show the progress widget."""
-        self.remove_class("hidden")
+        self.display = True
 
     def hide(self) -> None:
         """Hide the progress widget."""
-        self.add_class("hidden")
+        self.display = False
 
     def toggle(self) -> None:
         """Toggle visibility state."""
-        self.toggle_class("hidden")
+        self.display = not self.display
 
     def set_visible(self, visible: bool) -> None:
         """Set visibility.
@@ -285,7 +257,7 @@ class ProgressWidget(Static):
         Args:
             visible: Whether the widget should be visible.
         """
-        self.set_class(not visible, "hidden")
+        self.display = visible
 
     @classmethod
     def from_config(cls, config: dict[str, Any]) -> ProgressWidget:
