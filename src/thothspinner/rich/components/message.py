@@ -219,6 +219,10 @@ class MessageComponent:
         self.shimmer_light_color = shimmer.get("light_color", COLOR_SHIMMER)
         self.shimmer_speed = shimmer.get("speed", DEFAULT_SHIMMER_SPEED)
         self._reverse_shimmer = shimmer.get("reverse", False)
+        if self.shimmer_width <= 0:
+            raise ValueError("shimmer width must be positive")
+        if self.shimmer_speed <= 0:
+            raise ValueError("shimmer speed must be positive")
 
         # Other configuration
         validate_hex_color(color)

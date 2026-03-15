@@ -288,6 +288,16 @@ class TestShimmerEffect:
 
         assert message.shimmer_width == 5
 
+    def test_shimmer_zero_width_raises(self):
+        """Test that shimmer_width=0 raises ValueError."""
+        with pytest.raises(ValueError, match="shimmer width must be positive"):
+            MessageComponent(shimmer={"width": 0})
+
+    def test_shimmer_zero_speed_raises(self):
+        """Test that shimmer_speed=0 raises ValueError."""
+        with pytest.raises(ValueError, match="shimmer speed must be positive"):
+            MessageComponent(shimmer={"speed": 0})
+
     def test_shimmer_disabled(self):
         """Test rendering without shimmer."""
         message = MessageComponent(shimmer={"enabled": False})

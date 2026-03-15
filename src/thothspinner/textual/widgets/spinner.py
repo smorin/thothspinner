@@ -264,6 +264,11 @@ class SpinnerWidget(Static):
                 self._timer = None
             effective_interval = self._interval / self._speed
             self._timer = self.set_interval(effective_interval, self._advance_frame)
+        elif self._timer is not None:
+            # Timer exists but spinner is paused/stopped — invalidate so
+            # _start_timer() creates a fresh timer at the new speed
+            self._timer.stop()
+            self._timer = None
 
     def set_style(self, style: str) -> None:
         """Change the spinner animation style at runtime.

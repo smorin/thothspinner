@@ -91,6 +91,8 @@ class SpinnerComponent:
 
         if not self.frames:
             raise ValueError("frames must not be empty")
+        if self.interval <= 0:
+            raise ValueError("interval must be positive")
 
         validate_hex_color(color)
         self.color = color
@@ -98,6 +100,8 @@ class SpinnerComponent:
         self.error_icon = error_icon
         self.visible = visible
         self.speed = speed
+        if self.speed <= 0:
+            raise ValueError("speed must be positive")
 
         # Internal state management
         self._state = ComponentState.IN_PROGRESS

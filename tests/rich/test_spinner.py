@@ -44,6 +44,26 @@ class TestSpinnerComponent:
         assert spinner.frames == custom_frames
         assert spinner.interval == 0.2
 
+    def test_zero_interval_raises(self):
+        """Test that interval=0 raises ValueError."""
+        with pytest.raises(ValueError, match="interval must be positive"):
+            SpinnerComponent(frames=["a", "b"], interval=0)
+
+    def test_negative_interval_raises(self):
+        """Test that negative interval raises ValueError."""
+        with pytest.raises(ValueError, match="interval must be positive"):
+            SpinnerComponent(frames=["a", "b"], interval=-0.1)
+
+    def test_zero_speed_raises(self):
+        """Test that speed=0 raises ValueError."""
+        with pytest.raises(ValueError, match="speed must be positive"):
+            SpinnerComponent(speed=0)
+
+    def test_negative_speed_raises(self):
+        """Test that negative speed raises ValueError."""
+        with pytest.raises(ValueError, match="speed must be positive"):
+            SpinnerComponent(speed=-1.0)
+
     def test_frame_animation_timing(self):
         """Test M02-TS04: Frame timing accuracy."""
         spinner = SpinnerComponent(style="npm_dots")

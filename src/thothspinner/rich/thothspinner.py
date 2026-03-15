@@ -450,6 +450,8 @@ class ThothSpinner:
             # Handle auto-clear with threading.Timer
             clear_duration = duration or self.success_duration
             if clear_duration:
+                if self._clear_timer:
+                    self._clear_timer.cancel()
                 self._clear_timer = threading.Timer(clear_duration, self.clear)
                 self._clear_timer.daemon = True
                 self._clear_timer.start()
@@ -471,6 +473,8 @@ class ThothSpinner:
             # Handle auto-clear with threading.Timer
             clear_duration = duration or self.error_duration
             if clear_duration:
+                if self._clear_timer:
+                    self._clear_timer.cancel()
                 self._clear_timer = threading.Timer(clear_duration, self.clear)
                 self._clear_timer.daemon = True
                 self._clear_timer.start()
