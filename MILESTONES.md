@@ -137,7 +137,7 @@ with Live([progress, timer], console=console, refresh_per_second=10):
 
 ---
 
-## [ ] Milestone M04: Message Component with Shimmer (v0.4.0)
+## [x] Milestone M04: Message Component with Shimmer (v0.4.0)
 **Goal/Requirement**: Implement the Message component with shimmer effects
 - Create action words rotation system
 - Implement shimmer animation effect
@@ -159,7 +159,7 @@ To be defined in M05.md
 
 ---
 
-## [ ] Milestone M06: Rich Components Documentation (v0.6.0)
+## [-] Milestone M06: Rich Components Documentation (v0.6.0)
 **Goal/Requirement**: Document all Rich components and orchestrator
 - Document all Rich components (Hint, Spinner, Progress, Timer, Message)
 - Document Rich ThothSpinner orchestrator
@@ -171,7 +171,7 @@ To be defined in M06.md
 
 ---
 
-## [ ] Milestone M07: Textual Hint Component (v0.7.0)
+## [x] Milestone M07: Textual Hint Component (v0.7.0)
 **Goal/Requirement**: Implement Textual Hint widget
 - Implement Textual Hint widget
 - Add reactive state management for Hint
@@ -182,7 +182,7 @@ To be defined in M07.md
 
 ---
 
-## [ ] Milestone M08: Textual Spinner Component (v0.8.0)
+## [x] Milestone M08: Textual Spinner Component (v0.8.0)
 **Goal/Requirement**: Implement Textual Spinner widget with animations
 - Implement Textual Spinner widget with animations
 - Support all spinner styles from Rich version
@@ -193,7 +193,7 @@ To be defined in M08.md
 
 ---
 
-## [ ] Milestone M09: Textual Progress Component (v0.9.0)
+## [x] Milestone M09: Textual Progress Component (v0.9.0)
 **Goal/Requirement**: Implement Textual Progress widget
 - Implement Textual Progress widget
 - Support all format styles from Rich version
@@ -204,7 +204,7 @@ To be defined in M09.md
 
 ---
 
-## [ ] Milestone M10: Textual Timer Component (v0.10.0)
+## [x] Milestone M10: Textual Timer Component (v0.10.0)
 **Goal/Requirement**: Implement Textual Timer widget
 - Implement Textual Timer widget
 - Support all time formats from Rich version
@@ -215,7 +215,7 @@ To be defined in M10.md
 
 ---
 
-## [ ] Milestone M11: Textual Message Component (v0.11.0)
+## [x] Milestone M11: Textual Message Component (v0.11.0)
 **Goal/Requirement**: Implement Textual Message widget with shimmer
 - Implement Textual Message widget with shimmer
 - Support action words rotation
@@ -226,7 +226,7 @@ To be defined in M11.md
 
 ---
 
-## [ ] Milestone M12: Textual ThothSpinner Orchestrator (v0.12.0)
+## [x] Milestone M12: Textual ThothSpinner Orchestrator (v0.12.0)
 **Goal/Requirement**: Create Textual orchestrator widget
 - Create Textual orchestrator widget
 - Implement state management for all Textual components
