@@ -170,6 +170,11 @@ Transition to error state (hides widget).
 ##### `reset() -> None`
 Reset to in_progress state and show widget.
 
+##### `from_config(config: dict) -> HintWidget` *(classmethod)*
+Create a HintWidget from a configuration dictionary.
+
+Also supports shared visibility methods: `show()`, `hide()`, `toggle()`, `set_visible(bool)` — see [Shared Patterns](#shared-patterns).
+
 #### State Behaviors
 
 | State | Behavior | Effect |
@@ -269,6 +274,11 @@ Transition to error state. Displays `error_icon`.
 ##### `reset() -> None`
 Reset to in_progress state (alias for `start()`).
 
+##### `from_config(config: dict) -> SpinnerWidget` *(classmethod)*
+Create a SpinnerWidget from a configuration dictionary.
+
+Also supports shared visibility methods: `show()`, `hide()`, `toggle()`, `set_visible(bool)` — see [Shared Patterns](#shared-patterns).
+
 #### State Behaviors
 
 | State | Behavior | Effect |
@@ -355,6 +365,11 @@ Transition to error state. Optional custom text overrides `error_text`.
 
 ##### `reset() -> None`
 Reset to in_progress state and current to 0.
+
+##### `from_config(config: dict) -> ProgressWidget` *(classmethod)*
+Create a ProgressWidget from a configuration dictionary.
+
+Also supports shared visibility methods: `show()`, `hide()`, `toggle()`, `set_visible(bool)` — see [Shared Patterns](#shared-patterns).
 
 #### State Behaviors
 
@@ -462,6 +477,11 @@ Transition to success state. Stops the timer and freezes display.
 ##### `error(text: str | None = None) -> None`
 Transition to error state. Stops the timer and freezes display.
 
+##### `from_config(config: dict) -> TimerWidget` *(classmethod)*
+Create a TimerWidget from a configuration dictionary.
+
+Also supports shared visibility methods: `show()`, `hide()`, `toggle()`, `set_visible(bool)` — see [Shared Patterns](#shared-patterns).
+
 #### State Behaviors
 
 | State | Behavior | Effect |
@@ -484,7 +504,7 @@ Displays rotating action words with optional shimmer animation effects.
 | `interval` | `dict[str, float] \| None` | `{"min": 0.5, "max": 3.0}` | Rotation interval range |
 | `color` | `str` | `"#D97706"` | Base hex color |
 | `shimmer` | `dict[str, Any] \| None` | See below | Shimmer effect config |
-| `suffix` | `str` | `"..."` | Suffix appended to words |
+| `suffix` | `str` | `"…"` | Suffix appended to words (Unicode ellipsis) |
 | `success_text` | `str` | `"Complete!"` | Text for success state |
 | `error_text` | `str` | `"Failed"` | Text for error state |
 | `visible` | `bool` | `True` | Initial visibility |
@@ -561,6 +581,11 @@ Transition to error state. Shows `error_text`.
 
 ##### `reset() -> None`
 Reset to in_progress state. Clears word history and restarts rotation.
+
+##### `from_config(config: dict) -> MessageWidget` *(classmethod)*
+Create a MessageWidget from a configuration dictionary.
+
+Also supports shared visibility methods: `show()`, `hide()`, `toggle()`, `set_visible(bool)` — see [Shared Patterns](#shared-patterns).
 
 #### State Behaviors
 
