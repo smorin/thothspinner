@@ -37,6 +37,17 @@ class TimerComponent(BaseComponent):
         precision: int = 1,
         visible: bool = True,
     ):
+        """Initialize the TimerComponent.
+
+        Args:
+            format: Format configuration dict with key "style" set to one of:
+                "seconds", "seconds_decimal", "seconds_precise", "milliseconds",
+                "mm:ss", "hh:mm:ss", "compact", "full_ms", "auto", "auto_ms".
+                Defaults to {"style": "auto"}.
+            color: Hex color code for display. Defaults to None (uses "#FFFF55").
+            precision: Decimal places for seconds_decimal format. Defaults to 1.
+            visible: Whether to render the component. Defaults to True.
+        """
         super().__init__(color)
         self.visible = visible
         self.format = format or {"style": "auto"}
@@ -146,7 +157,7 @@ class TimerComponent(BaseComponent):
         self._state = ComponentState.IN_PROGRESS
 
     def get_elapsed(self) -> float:
-        """Get total elapsed time."""
+        """Get total elapsed time in seconds."""
         if self._running and self._start_time:
             return self._elapsed + (time() - self._start_time)
         return self._elapsed
@@ -207,5 +218,5 @@ class TimerComponent(BaseComponent):
         self._state = ComponentState.ERROR
 
     def is_running(self) -> bool:
-        """Check if timer is running."""
+        """Check if the timer is currently running."""
         return self._running

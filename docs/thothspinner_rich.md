@@ -174,8 +174,8 @@ with Live(progress) as live:
 ##### `set(value: int) -> None`
 Set the current progress value.
 
-##### `increment(amount: int = 1) -> None`
-Increment progress by specified amount.
+##### `increment() -> None`
+Increment progress by 1.
 
 ##### `set_percentage(percentage: float) -> None`
 Set progress as a percentage (0-100).
@@ -240,11 +240,8 @@ Stop the timer at current time.
 ##### `reset() -> None`
 Reset timer to 00:00.
 
-##### `pause() -> None`
-Pause the timer (preserves time).
-
 ##### `resume() -> None`
-Resume from paused state.
+Resume the timer from where it was stopped.
 
 #### State Behaviors
 

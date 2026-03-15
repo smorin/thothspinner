@@ -14,6 +14,12 @@ class BaseComponent(ABC):
     """Base class for all ThothSpinner components."""
 
     def __init__(self, color: str | None = None):
+        """Initialize the base component.
+
+        Args:
+            color: Optional hex color code (e.g., "#FF0000").
+                   Must be valid #RRGGBB format or ValueError is raised.
+        """
         self.color = color
         self._style: Style | None = None
         if color:

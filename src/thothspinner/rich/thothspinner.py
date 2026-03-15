@@ -418,7 +418,11 @@ class ThothSpinner:
             return self._state
 
     def start(self) -> None:
-        """Begin in in_progress state."""
+        """Begin in in_progress state.
+
+        Thread-safe. Cancels any pending auto-clear timer and starts
+        all child components.
+        """
         with self._lock:
             self._state = ComponentState.IN_PROGRESS
             self._start_time = time.time()
@@ -436,9 +440,15 @@ class ThothSpinner:
     def success(self, message: str | None = None, duration: float | None = None) -> None:
         """Transition to success state with optional auto-clear.
 
+        Thread-safe. Propagates success to all child components and
+        optionally schedules auto-clear via a daemon timer thread.
+
         Args:
-            message: Optional success message
-            duration: Override default success_duration for auto-clear
+            message: Optional success message to display.
+            duration: Override default success_duration for auto-clear (seconds).
+
+        Raises:
+            ValueError: If current state cannot transition to SUCCESS.
         """
         with self._lock:
             self._validate_transition(ComponentState.SUCCESS)
@@ -459,9 +469,15 @@ class ThothSpinner:
     def error(self, message: str | None = None, duration: float | None = None) -> None:
         """Transition to error state with optional auto-clear.
 
+        Thread-safe. Propagates error to all child components and
+        optionally schedules auto-clear via a daemon timer thread.
+
         Args:
-            message: Optional error message
-            duration: Override default error_duration for auto-clear
+            message: Optional error message to display.
+            duration: Override default error_duration for auto-clear (seconds).
+
+        Raises:
+            ValueError: If current state cannot transition to ERROR.
         """
         with self._lock:
             self._validate_transition(ComponentState.ERROR)
@@ -480,7 +496,11 @@ class ThothSpinner:
                 self._clear_timer.start()
 
     def reset(self) -> None:
-        """Return to in_progress state."""
+        """Return to in_progress state.
+
+        Thread-safe. Cancels any pending auto-clear timer, resets all
+        child components, and restores visibility.
+        """
         with self._lock:
             # Cancel any pending auto-clear timer
             if self._clear_timer:
@@ -497,7 +517,10 @@ class ThothSpinner:
                 component.visible = True
 
     def clear(self) -> None:
-        """Stop and clear display."""
+        """Stop and clear display.
+
+        Thread-safe. Hides all components and cancels pending timers.
+        """
         with self._lock:
             # Cancel any pending auto-clear
             if self._clear_timer:
@@ -598,9 +621,13 @@ class ThothSpinner:
     # Component Control Methods (Hybrid Approach)
 
     def update_progress(self, *, current: int, total: int | None = None) -> None:
-        """Update progress component (keyword-only args).
+        """Update progress component.
 
-        Thread-safe update with validation.
+        Thread-safe. Silently ignored if progress component is not found.
+
+        Args:
+            current: New progress value.
+            total: Optional new total value.
         """
         with self._lock:
             try:
@@ -612,7 +639,13 @@ class ThothSpinner:
                 pass  # Component not found, silently ignore
 
     def set_message(self, *, text: str) -> None:
-        """Update message component text (keyword-only)."""
+        """Update message component text.
+
+        Thread-safe. Silently ignored if message component is not found.
+
+        Args:
+            text: New message text to display.
+        """
         with self._lock:
             try:
                 message = self.get_component("message")
@@ -622,7 +655,13 @@ class ThothSpinner:
                 pass
 
     def set_spinner_style(self, *, style: str) -> None:
-        """Change spinner style (keyword-only)."""
+        """Change spinner animation style at runtime.
+
+        Thread-safe. Mutates the spinner in place rather than recreating it.
+
+        Args:
+            style: Name of a built-in spinner style from SPINNER_FRAMES.
+        """
         from thothspinner.rich.spinners.frames import SPINNER_FRAMES
 
         with self._lock:
@@ -636,7 +675,13 @@ class ThothSpinner:
                 spinner._start_time = None  # Reset animation
 
     def set_hint(self, *, text: str) -> None:
-        """Update hint text (keyword-only)."""
+        """Update hint text.
+
+        Thread-safe. Silently ignored if hint component is not found.
+
+        Args:
+            text: New hint text to display.
+        """
         with self._lock:
             try:
                 hint = self.get_component("hint")
@@ -665,7 +710,13 @@ class ThothSpinner:
                         setattr(component, key, value)
 
     def set_shimmer_direction(self, *, direction: str) -> None:
-        """Control shimmer direction (keyword-only)."""
+        """Control message shimmer animation direction.
+
+        Thread-safe. Silently ignored if message component is not found.
+
+        Args:
+            direction: Either "left-to-right" or "right-to-left".
+        """
         with self._lock:
             try:
                 message = self.get_component("message")

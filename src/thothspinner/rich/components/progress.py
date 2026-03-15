@@ -30,6 +30,19 @@ class ProgressComponent(BaseComponent):
         zero_pad: bool = False,
         visible: bool = True,
     ):
+        """Initialize the ProgressComponent.
+
+        Args:
+            current: Initial progress value. Defaults to 0.
+            total: Total value for completion. Defaults to 100.
+            format: Format configuration dict with key "style" set to one of:
+                "fraction" (e.g., "42/100"), "percentage" (e.g., "42%"),
+                "of_text" (e.g., "42 of 100"), "count_only" (e.g., "42"),
+                "ratio" (e.g., "42:100"). Defaults to {"style": "fraction"}.
+            color: Hex color code for display. Defaults to None (inherits).
+            zero_pad: Whether to zero-pad the current value. Defaults to False.
+            visible: Whether to render the component. Defaults to True.
+        """
         super().__init__(color)
         self.visible = visible
         self.current = current
@@ -108,7 +121,7 @@ class ProgressComponent(BaseComponent):
             self.current += 1
 
     def set(self, value: int) -> None:
-        """Set progress to specific value."""
+        """Set progress to specific value, clamped to [0, total]."""
         self.current = min(max(0, value), self.total)
 
     def set_percentage(self, percent: float) -> None:
@@ -122,7 +135,11 @@ class ProgressComponent(BaseComponent):
 
     # State management
     def success(self, text: str | None = None) -> None:
-        """Transition to success state."""
+        """Transition to success state.
+
+        Args:
+            text: Optional custom success text. Defaults to "100%".
+        """
         if not self._state.can_transition_to(ComponentState.SUCCESS):
             return
         self._state = ComponentState.SUCCESS
@@ -130,7 +147,11 @@ class ProgressComponent(BaseComponent):
             self._state_configs[ComponentState.SUCCESS].text = text
 
     def error(self, text: str | None = None) -> None:
-        """Transition to error state."""
+        """Transition to error state.
+
+        Args:
+            text: Optional custom error text. Defaults to "Failed".
+        """
         if not self._state.can_transition_to(ComponentState.ERROR):
             return
         self._state = ComponentState.ERROR
@@ -143,5 +164,5 @@ class ProgressComponent(BaseComponent):
         self.current = 0
 
     def is_complete(self) -> bool:
-        """Check if progress is complete."""
+        """Check if progress has reached or exceeded total."""
         return self.current >= self.total

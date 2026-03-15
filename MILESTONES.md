@@ -159,7 +159,7 @@ To be defined in M05.md
 
 ---
 
-## [-] Milestone M06: Rich Components Documentation (v0.6.0)
+## [x] Milestone M06: Rich Components Documentation (v0.6.0)
 **Goal/Requirement**: Document all Rich components and orchestrator
 - Document all Rich components (Hint, Spinner, Progress, Timer, Message)
 - Document Rich ThothSpinner orchestrator
