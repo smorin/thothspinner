@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 
+import pytest
 from rich.console import Console
 
 from thothspinner.core.states import ComponentState
@@ -12,6 +13,11 @@ from thothspinner.rich.components import SpinnerComponent
 
 class TestSpinnerComponent:
     """Test suite for SpinnerComponent."""
+
+    def test_empty_frames_raises(self):
+        """Test that empty frames list raises ValueError."""
+        with pytest.raises(ValueError, match="frames must not be empty"):
+            SpinnerComponent(frames=[])
 
     def test_initialization_defaults(self):
         """Test M02-TS03: Component instantiation with defaults."""
@@ -38,14 +44,28 @@ class TestSpinnerComponent:
         assert spinner.frames == custom_frames
         assert spinner.interval == 0.2
 
+    def test_zero_interval_raises(self):
+        """Test that interval=0 raises ValueError."""
+        with pytest.raises(ValueError, match="interval must be positive"):
+            SpinnerComponent(frames=["a", "b"], interval=0)
+
+    def test_negative_interval_raises(self):
+        """Test that negative interval raises ValueError."""
+        with pytest.raises(ValueError, match="interval must be positive"):
+            SpinnerComponent(frames=["a", "b"], interval=-0.1)
+
+    def test_zero_speed_raises(self):
+        """Test that speed=0 raises ValueError."""
+        with pytest.raises(ValueError, match="speed must be positive"):
+            SpinnerComponent(speed=0)
+
+    def test_negative_speed_raises(self):
+        """Test that negative speed raises ValueError."""
+        with pytest.raises(ValueError, match="speed must be positive"):
+            SpinnerComponent(speed=-1.0)
+
     def test_frame_animation_timing(self):
         """Test M02-TS04: Frame timing accuracy."""
-        # Mock time for deterministic testing
-        mock_time = 0.0
-
-        def get_time():
-            return mock_time
-
         spinner = SpinnerComponent(style="npm_dots")
 
         # Test frame advancement
@@ -53,13 +73,11 @@ class TestSpinnerComponent:
         assert frame1 == 0
 
         # Advance one interval
-        mock_time = 0.08
-        frame2 = spinner._calculate_frame(mock_time)
+        frame2 = spinner._calculate_frame(0.08)
         assert frame2 == 1
 
-        # Advance multiple intervals
-        mock_time = 0.8  # 10 intervals
-        frame3 = spinner._calculate_frame(mock_time)
+        # Advance multiple intervals (10 intervals)
+        frame3 = spinner._calculate_frame(0.8)
         assert frame3 == 0  # Should wrap around (10 % 10)
 
     def test_speed_multiplier(self):

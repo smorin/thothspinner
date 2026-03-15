@@ -31,7 +31,7 @@ class TestMessageComponentInitialization:
         assert message.shimmer_light_color == "#FFA500"
         assert message.shimmer_speed == 1.0
         assert message.reverse_shimmer is False
-        assert message.state == "in_progress"
+        assert message.state == ComponentState.IN_PROGRESS
 
     def test_custom_word_list_array_syntax(self):
         """Test initializing with custom word list using array syntax."""
@@ -208,18 +208,18 @@ class TestWordRotation:
 
         assert 1.0 <= message._next_interval <= 3.0
 
-    def test_update_with_custom_text(self):
-        """Test update method with custom text."""
+    def test_configure_with_custom_text(self):
+        """Test configure method with custom text."""
         message = MessageComponent()
-        message.update(text="CustomText")
+        message.configure(text="CustomText")
 
         assert message._current_word == "CustomText"
         assert message._last_word_change is None  # Timer reset
 
-    def test_update_trigger_new_word(self):
-        """Test update method to trigger new word."""
+    def test_configure_trigger_new_word(self):
+        """Test configure method to trigger new word."""
         message = MessageComponent(action_words=["Word1", "Word2"])
-        message.update(trigger_new=True)
+        message.configure(trigger_new=True)
 
         assert message._current_word in ["Word1", "Word2"]
         assert message._last_word_change is None  # Timer reset
@@ -268,10 +268,10 @@ class TestShimmerEffect:
         """Test changing shimmer direction via update."""
         message = MessageComponent()
 
-        message.update(reverse_shimmer=True)
+        message.configure(reverse_shimmer=True)
         assert message.reverse_shimmer is True
 
-        message.update(reverse_shimmer=False)
+        message.configure(reverse_shimmer=False)
         assert message.reverse_shimmer is False
 
     def test_shimmer_reset_on_word_change(self):
@@ -279,7 +279,7 @@ class TestShimmerEffect:
         message = MessageComponent()
         message._shimmer_start_time = 10.0
 
-        message.update(text="NewWord")
+        message.configure(text="NewWord")
         assert message._shimmer_start_time is None
 
     def test_shimmer_width_configuration(self):
@@ -287,6 +287,16 @@ class TestShimmerEffect:
         message = MessageComponent(shimmer={"width": 5})
 
         assert message.shimmer_width == 5
+
+    def test_shimmer_zero_width_raises(self):
+        """Test that shimmer_width=0 raises ValueError."""
+        with pytest.raises(ValueError, match="shimmer width must be positive"):
+            MessageComponent(shimmer={"width": 0})
+
+    def test_shimmer_zero_speed_raises(self):
+        """Test that shimmer_speed=0 raises ValueError."""
+        with pytest.raises(ValueError, match="shimmer speed must be positive"):
+            MessageComponent(shimmer={"speed": 0})
 
     def test_shimmer_disabled(self):
         """Test rendering without shimmer."""
@@ -306,14 +316,14 @@ class TestStateManagement:
     def test_initial_state(self):
         """Test initial state is in_progress."""
         message = MessageComponent()
-        assert message.state == "in_progress"
+        assert message.state == ComponentState.IN_PROGRESS
 
     def test_success_state_transition(self):
         """Test transition to success state."""
         message = MessageComponent()
         message.success("Task completed!")
 
-        assert message.state == "success"
+        assert message.state == ComponentState.SUCCESS
         assert message._static_text == "Task completed!"
 
     def test_error_state_transition(self):
@@ -321,7 +331,7 @@ class TestStateManagement:
         message = MessageComponent()
         message.error("Task failed!")
 
-        assert message.state == "error"
+        assert message.state == ComponentState.ERROR
         assert message._static_text == "Task failed!"
 
     def test_invalid_state_transitions(self):
@@ -333,7 +343,7 @@ class TestStateManagement:
 
         # Try to transition directly to error (should be ignored)
         message.error()
-        assert message.state == "success"
+        assert message.state == ComponentState.SUCCESS
 
     def test_reset_state(self):
         """Test resetting to in_progress state."""
@@ -341,10 +351,16 @@ class TestStateManagement:
         message.success()
         message.reset()
 
-        assert message.state == "in_progress"
+        assert message.state == ComponentState.IN_PROGRESS
         assert message._current_word == ""
         assert message._last_word_change is None
         assert len(message._used_words) == 0
+
+    def test_select_new_word_empty_list(self):
+        """Test that _select_new_word handles empty action_words without crashing."""
+        message = MessageComponent(action_words=["test"])
+        message._action_words = []  # Simulate external mutation
+        message._select_new_word()  # Should not crash
 
     def test_state_affects_rendering(self):
         """Test that state affects what is rendered."""
@@ -462,7 +478,7 @@ class TestPerformanceOptimization:
         list(message.__rich_console__(console, options))
 
         # Cache should be populated
-        assert len(message._render_cache) > 0
+        assert message._cached_terminal_render is not None
 
     def test_in_progress_not_cached(self):
         """Test that in_progress state is not cached."""
@@ -475,8 +491,7 @@ class TestPerformanceOptimization:
         list(message.__rich_console__(console, options))
 
         # Cache should be empty for animated state
-        cache_key = (ComponentState.IN_PROGRESS, "")
-        assert cache_key not in message._render_cache
+        assert message._cached_terminal_render is None
 
 
 class TestEdgeCases:
@@ -511,7 +526,7 @@ class TestEdgeCases:
         message = MessageComponent()
 
         for i in range(10):
-            message.update(text=f"Update{i}")
+            message.configure(text=f"Update{i}")
             assert message._current_word == f"Update{i}"
 
     def test_empty_action_words_recovery(self):

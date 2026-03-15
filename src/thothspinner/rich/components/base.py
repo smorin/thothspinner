@@ -7,26 +7,24 @@ from rich.measure import Measurement
 from rich.style import Style
 from rich.text import Text
 
+from ...core.color import validate_hex_color
+
 
 class BaseComponent(ABC):
     """Base class for all ThothSpinner components."""
 
     def __init__(self, color: str | None = None):
+        """Initialize the base component.
+
+        Args:
+            color: Optional hex color code (e.g., "#FF0000").
+                   Must be valid #RRGGBB format or ValueError is raised.
+        """
         self.color = color
         self._style: Style | None = None
         if color:
-            self._validate_hex_color(color)
+            validate_hex_color(color)
             self._style = Style(color=color)
-
-    @staticmethod
-    def _validate_hex_color(color: str) -> None:
-        """Validate hex color format #RRGGBB."""
-        if not color.startswith("#") or len(color) != 7:
-            raise ValueError(f"Invalid hex color: {color}")
-        try:
-            int(color[1:], 16)
-        except ValueError as err:
-            raise ValueError(f"Invalid hex color: {color}") from err
 
     @abstractmethod
     def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:

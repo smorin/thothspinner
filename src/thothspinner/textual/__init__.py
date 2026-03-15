@@ -1,5 +1,23 @@
 """Textual components for ThothSpinner."""
 
-from .widgets import HintWidget
+from .widgets import (
+    HintWidget,
+    MessageWidget,
+    ProgressWidget,
+    SpinnerWidget,
+    ThothSpinnerWidget,
+    TimerWidget,
+)
 
-__all__ = ["HintWidget"]
+# Public alias matching M12 deliverable
+TextualThothSpinner = ThothSpinnerWidget
+
+__all__ = [
+    "HintWidget",
+    "MessageWidget",
+    "ProgressWidget",
+    "SpinnerWidget",
+    "TextualThothSpinner",
+    "ThothSpinnerWidget",
+    "TimerWidget",
+]

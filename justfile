@@ -35,6 +35,34 @@ example-hint:
 example-textual-hint:
     uv run python examples/textual_hint_demo.py
 
+# Run Textual spinner widget demo
+example-textual-spinner:
+    uv run python examples/textual_spinner_demo.py
+
+# Run Textual progress widget demo
+example-textual-progress:
+    uv run python examples/textual_progress_demo.py
+
+# Run Textual timer widget demo
+example-textual-timer:
+    uv run python examples/textual_timer_demo.py
+
+# Run Textual message widget demo
+example-textual-message:
+    uv run python examples/textual_message_demo.py
+
+# Run Textual orchestrator demo
+example-textual-orchestrator:
+    uv run python examples/textual_orchestrator_demo.py
+
+# Run Textual reactive patterns demo
+example-textual-reactive:
+    uv run python examples/textual_reactive_demo.py
+
+# Run all Textual examples
+examples-textual: example-textual-hint example-textual-spinner example-textual-progress example-textual-timer example-textual-message example-textual-orchestrator example-textual-reactive
+    @echo "All Textual examples completed!"
+
 # Run spinner example
 example-spinner:
     uv run python examples/rich/spinner_demo.py

@@ -5,8 +5,8 @@ from io import StringIO
 
 from rich.console import Console
 
+from thothspinner.core.states import ComponentState
 from thothspinner.rich.components import TimerComponent
-from thothspinner.rich.components.state import ComponentState
 
 
 class TestTimerComponent:

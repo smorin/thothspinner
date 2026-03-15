@@ -4,6 +4,7 @@ import pytest
 from rich.text import Text
 from textual.app import App, ComposeResult
 
+from thothspinner.core.states import ComponentState
 from thothspinner.textual.widgets import HintWidget
 
 
@@ -14,7 +15,7 @@ def test_initialization_defaults():
     assert widget.text == ""
     assert widget.color == "#888888"
     assert widget.icon == ""
-    assert "hidden" not in widget.classes
+    assert widget.display is True
 
 
 def test_initialization_custom():
@@ -23,7 +24,7 @@ def test_initialization_custom():
     assert widget.text == "Custom"
     assert widget.color == "#FF0000"
     assert widget.icon == "⚠"
-    assert "hidden" in widget.classes
+    assert widget.display is False
 
 
 def test_widget_construction_outside_app():
@@ -84,9 +85,9 @@ def test_color_validation():
     assert widget.color == "#00FF00"
 
     # Invalid colors should raise
-    with pytest.raises(ValueError, match="must start with #"):
+    with pytest.raises(ValueError, match="Invalid hex color"):
         widget.color = "red"
-    with pytest.raises(ValueError, match="must be #RRGGBB"):
+    with pytest.raises(ValueError, match="Invalid hex color"):
         widget.color = "#FF"
     with pytest.raises(ValueError, match="Invalid hex"):
         widget.color = "#GGGGGG"
@@ -109,7 +110,7 @@ async def test_style_rendering():
 # Test visibility toggles
 @pytest.mark.asyncio
 async def test_visibility_toggle():
-    """Test CSS class-based visibility changes."""
+    """Test display-based visibility changes."""
 
     class VisibilityApp(App):
         def compose(self) -> ComposeResult:
@@ -119,27 +120,27 @@ async def test_visibility_toggle():
         hint = pilot.app.query_one("#hint", HintWidget)
 
         # Initially visible
-        assert "hidden" not in hint.classes
+        assert hint.display is True
 
         # Hide widget
         hint.hide()
         await pilot.pause()
-        assert "hidden" in hint.classes
+        assert not hint.display
 
         # Show widget
         hint.show()
         await pilot.pause()
-        assert "hidden" not in hint.classes
+        assert hint.display
 
         # Toggle visibility
         hint.toggle()
         await pilot.pause()
-        assert "hidden" in hint.classes
+        assert not hint.display
 
         # Test set_visible method
         hint.set_visible(True)
         await pilot.pause()
-        assert "hidden" not in hint.classes
+        assert hint.display
 
 
 # Integration test with Textual app
@@ -176,8 +177,8 @@ async def test_app_integration():
         await pilot.pause()
         assert "error" in hint1.classes
 
-        # Test batch updates
-        hint1.update(text="Batch Update", color="#FF00FF")
+        # Test batch configure
+        hint1.configure(text="Batch Update", color="#FF00FF")
         await pilot.pause()
         assert hint1.text == "Batch Update"
         assert hint1.color == "#FF00FF"
@@ -268,7 +269,7 @@ async def test_performance_rapid_updates():
             hint.toggle()
         await pilot.pause()
         # 50 toggles = back to original state
-        assert "hidden" not in hint.classes
+        assert hint.display
 
 
 # Verify feature parity with Rich HintComponent
@@ -280,10 +281,10 @@ def test_feature_parity():
     assert widget.text == "Config"
     assert widget.color == "#123456"
     assert widget.icon == "ℹ"
-    assert "hidden" in widget.classes
+    assert not widget.display
 
-    # Test update method for batch changes
-    widget.update(text="New Text", color="#654321", icon="⚠")
+    # Test configure method for batch changes
+    widget.configure(text="New Text", color="#654321", icon="⚠")
     assert widget.text == "New Text"
     assert widget.color == "#654321"
     assert widget.icon == "⚠"
@@ -296,11 +297,11 @@ def test_feature_parity():
 
     # Test all visibility methods
     widget.show()
-    assert "hidden" not in widget.classes
+    assert widget.display
     widget.hide()
-    assert "hidden" in widget.classes
+    assert not widget.display
     widget.toggle()
-    assert "hidden" not in widget.classes
+    assert widget.display
 
 
 @pytest.mark.asyncio
@@ -319,12 +320,12 @@ async def test_animation_support():
         await pilot.pause()
         hint.fade_in(duration=0.1)
         await pilot.pause()
-        assert "hidden" not in hint.classes
+        assert hint.display
 
         # Test fade out
         hint.fade_out(duration=0.1)
         await pilot.pause(0.2)  # Wait for animation
-        assert "hidden" in hint.classes
+        assert not hint.display
 
 
 # Test icon content building
@@ -388,15 +389,15 @@ def test_edge_cases():
     """Test edge cases and error handling."""
     widget = HintWidget()
 
-    # Test invalid color in update
-    widget.update(text="Valid", color="#AABBCC")
+    # Test invalid color in configure
+    widget.configure(text="Valid", color="#AABBCC")
     assert widget.color == "#AABBCC"
 
     with pytest.raises(ValueError):
-        widget.update(color="invalid")
+        widget.configure(color="invalid")
 
-    # Test non-existent attribute in update
-    widget.update(nonexistent="value")  # Should not raise
+    # Test non-existent attribute in configure
+    widget.configure(nonexistent="value")  # Should not raise
 
     # Test validate_color method
     assert widget.validate_color("#112233") == "#112233"
@@ -408,8 +409,113 @@ def test_edge_cases():
 def test_css_defaults():
     """Test DEFAULT_CSS is properly defined."""
     assert "HintWidget" in HintWidget.DEFAULT_CSS
-    assert "hidden" in HintWidget.DEFAULT_CSS
-    assert "display: none" in HintWidget.DEFAULT_CSS
     assert "error" in HintWidget.DEFAULT_CSS
     assert "warning" in HintWidget.DEFAULT_CSS
     assert "success" in HintWidget.DEFAULT_CSS
+
+
+# Test state management (R4)
+class TestStateManagement:
+    """Tests for HintWidget state management via ComponentState."""
+
+    def test_state_property_returns_component_state(self):
+        """Test that the state property returns a ComponentState."""
+        widget = HintWidget()
+        assert isinstance(widget.state, ComponentState)
+        assert widget.state == ComponentState.IN_PROGRESS
+
+    def test_success_transition(self):
+        """Test success() hides widget and sets state to SUCCESS."""
+        widget = HintWidget(text="Hint text")
+        assert widget.state == ComponentState.IN_PROGRESS
+        widget.success()
+        assert widget.display is False
+        assert widget.state == ComponentState.SUCCESS
+
+    def test_error_transition(self):
+        """Test error() hides widget and sets state to ERROR."""
+        widget = HintWidget(text="Hint text")
+        assert widget.state == ComponentState.IN_PROGRESS
+        widget.error()
+        assert widget.display is False
+        assert widget.state == ComponentState.ERROR
+
+    def test_reset_transition(self):
+        """Test reset() shows widget and sets state to IN_PROGRESS."""
+        widget = HintWidget(text="Hint text")
+        widget.success()
+        assert widget.state == ComponentState.SUCCESS
+        assert widget.display is False
+
+        widget.reset()
+        assert widget.display is True
+        assert widget.state == ComponentState.IN_PROGRESS
+
+    def test_success_with_custom_text(self):
+        """Test success() with custom text sets widget text."""
+        widget = HintWidget(text="Original")
+        widget.success(text="All done!")
+        assert widget.text == "All done!"
+        assert widget.state == ComponentState.SUCCESS
+        assert widget.display is False
+
+    def test_error_with_custom_text(self):
+        """Test error() with custom text sets widget text."""
+        widget = HintWidget(text="Original")
+        widget.error(text="Something failed")
+        assert widget.text == "Something failed"
+        assert widget.state == ComponentState.ERROR
+        assert widget.display is False
+
+    def test_invalid_transition_success_to_error(self):
+        """Test that SUCCESS -> ERROR is invalid and state does not change."""
+        widget = HintWidget(text="Hint")
+        widget.success()
+        assert widget.state == ComponentState.SUCCESS
+
+        widget.error()
+        # State should remain SUCCESS since transition is invalid
+        assert widget.state == ComponentState.SUCCESS
+
+    def test_invalid_transition_error_to_success(self):
+        """Test that ERROR -> SUCCESS is invalid and state does not change."""
+        widget = HintWidget(text="Hint")
+        widget.error()
+        assert widget.state == ComponentState.ERROR
+
+        widget.success()
+        # State should remain ERROR since transition is invalid
+        assert widget.state == ComponentState.ERROR
+
+    @pytest.mark.asyncio
+    async def test_css_classes_applied_via_watch_state(self):
+        """Test that watch__state applies correct CSS classes."""
+
+        class StateApp(App):
+            def compose(self) -> ComposeResult:
+                yield HintWidget(text="State test", id="hint")
+
+        async with StateApp().run_test() as pilot:
+            hint = pilot.app.query_one("#hint", HintWidget)
+
+            # Initial state: no success/error classes
+            assert "success" not in hint.classes
+            assert "error" not in hint.classes
+
+            # Transition to SUCCESS
+            hint.success()
+            await pilot.pause()
+            assert "success" in hint.classes
+            assert "error" not in hint.classes
+
+            # Reset to IN_PROGRESS
+            hint.reset()
+            await pilot.pause()
+            assert "success" not in hint.classes
+            assert "error" not in hint.classes
+
+            # Transition to ERROR
+            hint.error()
+            await pilot.pause()
+            assert "error" in hint.classes
+            assert "success" not in hint.classes
