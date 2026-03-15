@@ -6,6 +6,7 @@ import pytest
 from rich.console import Console
 from rich.text import Text
 
+from thothspinner.core.states import ComponentState
 from thothspinner.rich.components.message import (
     DEFAULT_ACTION_WORDS,
     MessageComponent,
@@ -30,7 +31,7 @@ class TestMessageComponentInitialization:
         assert message.shimmer_light_color == "#FFA500"
         assert message.shimmer_speed == 1.0
         assert message.reverse_shimmer is False
-        assert message.state == "in_progress"
+        assert message.state == ComponentState.IN_PROGRESS
 
     def test_custom_word_list_array_syntax(self):
         """Test initializing with custom word list using array syntax."""
@@ -305,14 +306,14 @@ class TestStateManagement:
     def test_initial_state(self):
         """Test initial state is in_progress."""
         message = MessageComponent()
-        assert message.state == "in_progress"
+        assert message.state == ComponentState.IN_PROGRESS
 
     def test_success_state_transition(self):
         """Test transition to success state."""
         message = MessageComponent()
         message.success("Task completed!")
 
-        assert message.state == "success"
+        assert message.state == ComponentState.SUCCESS
         assert message._static_text == "Task completed!"
 
     def test_error_state_transition(self):
@@ -320,7 +321,7 @@ class TestStateManagement:
         message = MessageComponent()
         message.error("Task failed!")
 
-        assert message.state == "error"
+        assert message.state == ComponentState.ERROR
         assert message._static_text == "Task failed!"
 
     def test_invalid_state_transitions(self):
@@ -332,7 +333,7 @@ class TestStateManagement:
 
         # Try to transition directly to error (should be ignored)
         message.error()
-        assert message.state == "success"
+        assert message.state == ComponentState.SUCCESS
 
     def test_reset_state(self):
         """Test resetting to in_progress state."""
@@ -340,10 +341,16 @@ class TestStateManagement:
         message.success()
         message.reset()
 
-        assert message.state == "in_progress"
+        assert message.state == ComponentState.IN_PROGRESS
         assert message._current_word == ""
         assert message._last_word_change is None
         assert len(message._used_words) == 0
+
+    def test_select_new_word_empty_list(self):
+        """Test that _select_new_word handles empty action_words without crashing."""
+        message = MessageComponent(action_words=["test"])
+        message._action_words = []  # Simulate external mutation
+        message._select_new_word()  # Should not crash
 
     def test_state_affects_rendering(self):
         """Test that state affects what is rendered."""

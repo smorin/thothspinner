@@ -282,11 +282,12 @@ class TimerWidget(Static):
 
     def reset(self) -> None:
         """Reset the timer to zero."""
+        was_paused = self._paused
         self._elapsed = 0.0
-        self._start_time = monotonic() if self._timer_active else None
-        self._paused = False
+        self._paused = was_paused
+        self._start_time = monotonic() if (self._timer_active and not was_paused) else None
         self._state = ComponentState.IN_PROGRESS
-        if self._timer_active and self.is_mounted:
+        if self._timer_active and not was_paused and self.is_mounted:
             self._start_display_timer()
         self.refresh()
 

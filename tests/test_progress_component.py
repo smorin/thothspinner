@@ -5,8 +5,8 @@ from io import StringIO
 import pytest
 from rich.console import Console
 
-from thothspinner.rich.components import ProgressComponent
 from thothspinner.core.states import ComponentState
+from thothspinner.rich.components import ProgressComponent
 
 
 class TestProgressComponent:

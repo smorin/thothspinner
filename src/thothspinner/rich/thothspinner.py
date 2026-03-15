@@ -451,6 +451,7 @@ class ThothSpinner:
             clear_duration = duration or self.success_duration
             if clear_duration:
                 self._clear_timer = threading.Timer(clear_duration, self.clear)
+                self._clear_timer.daemon = True
                 self._clear_timer.start()
 
     def error(self, message: str | None = None, duration: float | None = None) -> None:
@@ -471,6 +472,7 @@ class ThothSpinner:
             clear_duration = duration or self.error_duration
             if clear_duration:
                 self._clear_timer = threading.Timer(clear_duration, self.clear)
+                self._clear_timer.daemon = True
                 self._clear_timer.start()
 
     def reset(self) -> None:

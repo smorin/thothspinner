@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 
+import pytest
 from rich.console import Console
 
 from thothspinner.core.states import ComponentState
@@ -12,6 +13,11 @@ from thothspinner.rich.components import SpinnerComponent
 
 class TestSpinnerComponent:
     """Test suite for SpinnerComponent."""
+
+    def test_empty_frames_raises(self):
+        """Test that empty frames list raises ValueError."""
+        with pytest.raises(ValueError, match="frames must not be empty"):
+            SpinnerComponent(frames=[])
 
     def test_initialization_defaults(self):
         """Test M02-TS03: Component instantiation with defaults."""
@@ -40,12 +46,6 @@ class TestSpinnerComponent:
 
     def test_frame_animation_timing(self):
         """Test M02-TS04: Frame timing accuracy."""
-        # Mock time for deterministic testing
-        mock_time = 0.0
-
-        def get_time():
-            return mock_time
-
         spinner = SpinnerComponent(style="npm_dots")
 
         # Test frame advancement
@@ -53,13 +53,11 @@ class TestSpinnerComponent:
         assert frame1 == 0
 
         # Advance one interval
-        mock_time = 0.08
-        frame2 = spinner._calculate_frame(mock_time)
+        frame2 = spinner._calculate_frame(0.08)
         assert frame2 == 1
 
-        # Advance multiple intervals
-        mock_time = 0.8  # 10 intervals
-        frame3 = spinner._calculate_frame(mock_time)
+        # Advance multiple intervals (10 intervals)
+        frame3 = spinner._calculate_frame(0.8)
         assert frame3 == 0  # Should wrap around (10 % 10)
 
     def test_speed_multiplier(self):

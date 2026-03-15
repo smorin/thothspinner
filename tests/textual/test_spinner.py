@@ -277,8 +277,7 @@ async def test_stop():
         await pilot.pause(0.1)
 
         spinner.stop()
-        assert spinner._timer is not None
-        assert not spinner._timer._active.is_set()
+        assert spinner._timer is None
         assert spinner.state == ComponentState.IN_PROGRESS
 
         frame_after_stop = spinner._frame_index

@@ -237,9 +237,9 @@ class MessageComponent:
         self._cached_terminal_render: tuple[tuple, Text] | None = None
 
     @property
-    def state(self) -> str:
-        """Get the current component state as a string."""
-        return self._state.name.lower()
+    def state(self) -> ComponentState:
+        """Get the current component state."""
+        return self._state
 
     @property
     def action_words(self) -> list[str]:
@@ -346,6 +346,8 @@ class MessageComponent:
 
     def _select_new_word(self) -> None:
         """Select a new random word from the pool."""
+        if not self._action_words:
+            return
         # Get available words (exclude recent ones)
         available = [w for w in self._action_words if w not in self._used_words]
         if not available:

@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.live import Live
 from rich.table import Table
 
+from thothspinner.core.states import ComponentState
 from thothspinner.rich.components import HintComponent, SpinnerComponent
 
 
@@ -167,8 +168,8 @@ class TestSpinnerIntegration:
         # Should complete 10000 calculations in under 100ms
         assert elapsed < 0.1, f"Frame calculation too slow: {elapsed:.3f}s"
 
-    def test_memory_stability(self):
-        """Test that spinner doesn't leak memory during long runs."""
+    def test_no_crash_on_repeated_operations(self):
+        """Test that spinner handles many frame calculations and state transitions without error."""
         spinner = SpinnerComponent()
 
         # Simulate many frame calculations
@@ -182,5 +183,5 @@ class TestSpinnerIntegration:
             spinner.error()
             spinner.reset()
 
-        # If we get here without issues, memory is stable
-        assert True
+        # Verify spinner is in a valid state after all transitions
+        assert spinner.state == ComponentState.IN_PROGRESS

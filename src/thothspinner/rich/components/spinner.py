@@ -89,6 +89,9 @@ class SpinnerComponent:
             self.frames = frames
             self.interval = interval
 
+        if not self.frames:
+            raise ValueError("frames must not be empty")
+
         validate_hex_color(color)
         self.color = color
         self.success_icon = success_icon

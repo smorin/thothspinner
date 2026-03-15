@@ -165,8 +165,8 @@ class HintWidget(Static):
             return
         if text is not None:
             self.text = text
-        self.display = False
         self._state = ComponentState.SUCCESS
+        self.display = False
 
     def error(self, text: str | None = None) -> None:
         """Transition to error state.
@@ -178,8 +178,8 @@ class HintWidget(Static):
             return
         if text is not None:
             self.text = text
-        self.display = False
         self._state = ComponentState.ERROR
+        self.display = False
 
     def reset(self) -> None:
         """Reset to in_progress state and show the widget."""

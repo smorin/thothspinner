@@ -235,6 +235,7 @@ class SpinnerWidget(Static):
         Freezes the spinner on the current frame.
         """
         self._stop_timer()
+        self._timer = None
 
     def pause(self) -> None:
         """Toggle pause/resume of the animation."""
