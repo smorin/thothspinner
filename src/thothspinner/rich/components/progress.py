@@ -3,13 +3,19 @@
 from typing import Any, Literal
 
 from rich.console import Console, ConsoleOptions, RenderResult
+from rich.measure import Measurement
 from rich.segment import Segment
 from rich.text import Text
 
+from ...core.color import COLOR_ERROR, COLOR_SUCCESS
+from ...core.states import ComponentState
 from .base import BaseComponent
-from .state import ComponentState, StateConfig
+from .state import StateConfig
 
 FormatStyle = Literal["fraction", "percentage", "of_text", "count_only", "ratio"]
+
+# Progress component defaults
+DEFAULT_TOTAL = 100
 
 
 class ProgressComponent(BaseComponent):
@@ -18,12 +24,14 @@ class ProgressComponent(BaseComponent):
     def __init__(
         self,
         current: int = 0,
-        total: int = 100,
+        total: int = DEFAULT_TOTAL,
         format: dict[str, Any] | None = None,
         color: str | None = None,
         zero_pad: bool = False,
+        visible: bool = True,
     ):
         super().__init__(color)
+        self.visible = visible
         self.current = current
         self.total = total
         self.format = format or {"style": "fraction"}
@@ -39,8 +47,8 @@ class ProgressComponent(BaseComponent):
                 animating=False,  # Progress doesn't animate
                 color=self.color,
             ),
-            ComponentState.SUCCESS: StateConfig(animating=False, color="#00FF00", text="100%"),
-            ComponentState.ERROR: StateConfig(animating=False, color="#FF0000", text="Failed"),
+            ComponentState.SUCCESS: StateConfig(animating=False, color=COLOR_SUCCESS, text="100%"),
+            ComponentState.ERROR: StateConfig(animating=False, color=COLOR_ERROR, text="Failed"),
         }
 
     def _format_progress(self) -> str:
@@ -69,6 +77,8 @@ class ProgressComponent(BaseComponent):
 
     def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
         """Render the progress component."""
+        if not self.visible:
+            return
         config = self._state_configs[self._state]
         from rich.style import Style
 
@@ -83,6 +93,13 @@ class ProgressComponent(BaseComponent):
 
         style = Style(color=config.color) if config.color else self._style
         return Text(self._format_progress(), style=style)
+
+    def __rich_measure__(self, console: Console, options: ConsoleOptions) -> Measurement:
+        """Measure the progress component width for layout."""
+        if not self.visible:
+            return Measurement(0, 0)
+        text = Text(self._format_progress())
+        return Measurement.get(console, options, text)
 
     # Update methods
     def increment(self) -> None:
@@ -106,12 +123,16 @@ class ProgressComponent(BaseComponent):
     # State management
     def success(self, text: str | None = None) -> None:
         """Transition to success state."""
+        if not self._state.can_transition_to(ComponentState.SUCCESS):
+            return
         self._state = ComponentState.SUCCESS
         if text:
             self._state_configs[ComponentState.SUCCESS].text = text
 
     def error(self, text: str | None = None) -> None:
         """Transition to error state."""
+        if not self._state.can_transition_to(ComponentState.ERROR):
+            return
         self._state = ComponentState.ERROR
         if text:
             self._state_configs[ComponentState.ERROR].text = text

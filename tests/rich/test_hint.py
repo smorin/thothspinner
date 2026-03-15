@@ -84,23 +84,23 @@ class TestHintComponent:
         assert hint.color == "#888888"  # default
         assert hint.visible is True  # default
 
-    def test_update_method(self):
-        """Test update method for future-proofing."""
+    def test_configure_method(self):
+        """Test configure method for property updates."""
         hint = HintComponent()
 
         # Update single property
-        hint.update(text="Updated text")
+        hint.configure(text="Updated text")
         assert hint.text == "Updated text"
         assert hint.color == "#888888"  # unchanged
 
         # Update multiple properties
-        hint.update(color="#FF0000", visible=False)
+        hint.configure(color="#FF0000", visible=False)
         assert hint.text == "Updated text"  # unchanged
         assert hint.color == "#FF0000"
         assert hint.visible is False
 
         # Update all properties
-        hint.update(text="Final", color="#00FF00", visible=True)
+        hint.configure(text="Final", color="#00FF00", visible=True)
         assert hint.text == "Final"
         assert hint.color == "#00FF00"
         assert hint.visible is True

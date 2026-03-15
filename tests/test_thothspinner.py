@@ -244,12 +244,15 @@ class TestComponentControl:
         """Test set_spinner_style method."""
         spinner = ThothSpinner()
         original_spinner = spinner.get_component("spinner")
+        original_frames = original_spinner.frames[:]
 
         spinner.set_spinner_style(style="claude_stars")
 
-        new_spinner = spinner.get_component("spinner")
-        # New spinner should be created
-        assert new_spinner is not original_spinner
+        updated_spinner = spinner.get_component("spinner")
+        # Same component is mutated in place (not recreated)
+        assert updated_spinner is original_spinner
+        # Frames should have changed
+        assert updated_spinner.frames != original_frames
 
     def test_update_component_generic(self):
         """Test generic update_component method."""

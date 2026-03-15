@@ -76,9 +76,9 @@ def test_color_validation():
     widget.color = "#00FF00"
     assert widget.color == "#00FF00"
 
-    with pytest.raises(ValueError, match="must start with #"):
+    with pytest.raises(ValueError, match="Invalid hex color"):
         widget.color = "red"
-    with pytest.raises(ValueError, match="must be #RRGGBB"):
+    with pytest.raises(ValueError, match="Invalid hex color"):
         widget.color = "#FF"
     with pytest.raises(ValueError, match="Invalid hex"):
         widget.color = "#GGGGGG"

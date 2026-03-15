@@ -1,15 +1,6 @@
 """State management for ThothSpinner components."""
 
 from dataclasses import dataclass
-from enum import Enum
-
-
-class ComponentState(Enum):
-    """Component state enumeration."""
-
-    IN_PROGRESS = "in_progress"
-    SUCCESS = "success"
-    ERROR = "error"
 
 
 @dataclass

@@ -6,7 +6,7 @@ import pytest
 from rich.console import Console
 
 from thothspinner.rich.components import ProgressComponent
-from thothspinner.rich.components.state import ComponentState
+from thothspinner.core.states import ComponentState
 
 
 class TestProgressComponent:
@@ -145,16 +145,18 @@ class TestProgressComponent:
         assert progress._state == ComponentState.SUCCESS
         assert progress._state_configs[ComponentState.SUCCESS].text == "Complete!"
 
-        # Test error
+        # Test invalid transition: SUCCESS -> ERROR is blocked
         progress.error("Failed")
-        assert progress._state == ComponentState.ERROR
-        assert progress._state_configs[ComponentState.ERROR].text == "Failed"
+        assert progress._state == ComponentState.SUCCESS  # Unchanged
 
-        # Test reset
-        progress.set(50)
+        # Test reset, then error
         progress.reset()
         assert progress._state == ComponentState.IN_PROGRESS
         assert progress.current == 0
+
+        progress.error("Failed")
+        assert progress._state == ComponentState.ERROR
+        assert progress._state_configs[ComponentState.ERROR].text == "Failed"
 
     def test_state_display(self):
         """Test state affects display."""
@@ -167,7 +169,8 @@ class TestProgressComponent:
         progress.success()
         assert progress._format_progress() == "100%"
 
-        # Error state shows custom text
+        # Reset then error state shows custom text
+        progress.reset()
         progress.error()
         assert progress._format_progress() == "Failed"
 
@@ -222,7 +225,8 @@ class TestProgressComponent:
         segments = list(progress.__rich_console__(console, options))
         assert len(segments) > 0
 
-        # Test error state rendering
+        # Test error state rendering (must reset first)
+        progress.reset()
         progress.error()
         segments = list(progress.__rich_console__(console, options))
         assert len(segments) > 0

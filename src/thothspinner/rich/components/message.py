@@ -15,7 +15,21 @@ from rich.measure import Measurement
 from rich.style import Style
 from rich.text import Text
 
+from ...core.color import (
+    COLOR_DEFAULT,
+    COLOR_ERROR,
+    COLOR_SHIMMER,
+    COLOR_SUCCESS,
+    validate_hex_color,
+)
 from ...core.states import ComponentState
+
+# Message component defaults
+WORD_HISTORY_SIZE = 5
+DEFAULT_MIN_INTERVAL = 0.5
+DEFAULT_MAX_INTERVAL = 3.0
+DEFAULT_SHIMMER_WIDTH = 3
+DEFAULT_SHIMMER_SPEED = 1.0
 
 # Default action words list (87 words from PRD)
 DEFAULT_ACTION_WORDS = [
@@ -149,7 +163,7 @@ class MessageComponent:
         self,
         action_words: list[str] | dict[str, Any] | None = None,
         interval: dict[str, float] | None = None,
-        color: str = "#D97706",
+        color: str = COLOR_DEFAULT,
         shimmer: dict[str, Any] | None = None,
         suffix: str = "…",
         visible: bool = True,
@@ -195,18 +209,19 @@ class MessageComponent:
 
         # Set interval configuration
         interval = interval or {}
-        self.min_interval = interval.get("min", 0.5)
-        self.max_interval = interval.get("max", 3.0)
+        self.min_interval = interval.get("min", DEFAULT_MIN_INTERVAL)
+        self.max_interval = interval.get("max", DEFAULT_MAX_INTERVAL)
 
         # Set shimmer configuration
         shimmer = shimmer or {}
         self.shimmer_enabled = shimmer.get("enabled", True)
-        self.shimmer_width = shimmer.get("width", 3)
-        self.shimmer_light_color = shimmer.get("light_color", "#FFA500")
-        self.shimmer_speed = shimmer.get("speed", 1.0)
+        self.shimmer_width = shimmer.get("width", DEFAULT_SHIMMER_WIDTH)
+        self.shimmer_light_color = shimmer.get("light_color", COLOR_SHIMMER)
+        self.shimmer_speed = shimmer.get("speed", DEFAULT_SHIMMER_SPEED)
         self._reverse_shimmer = shimmer.get("reverse", False)
 
         # Other configuration
+        validate_hex_color(color)
         self.color = color
         self.suffix = suffix
         self.visible = visible
@@ -218,9 +233,8 @@ class MessageComponent:
         self._last_word_change: float | None = None
         self._next_interval: float = 0.0
         self._shimmer_start_time: float | None = None
-        self._used_words: list[str] = []  # Track last 5 words to avoid repeats
-        self._render_cache: dict[tuple, Text] = {}
-        self._cache_timestamp: float = 0
+        self._used_words: list[str] = []  # Track recent words to avoid repeats
+        self._cached_terminal_render: tuple[tuple, Text] | None = None
 
     @property
     def state(self) -> str:
@@ -269,14 +283,14 @@ class MessageComponent:
         """
         self._reverse_shimmer = value
 
-    def update(
+    def configure(
         self,
         *,
         text: str | None = None,
         trigger_new: bool = False,
         reverse_shimmer: bool | None = None,
     ) -> None:
-        """Update component state.
+        """Configure component properties.
 
         Args:
             text: Custom text to display (overrides word rotation)
@@ -295,6 +309,9 @@ class MessageComponent:
 
         if reverse_shimmer is not None:
             self._reverse_shimmer = reverse_shimmer
+
+    # Backward-compatible alias
+    update = configure
 
     def success(self, text: str = "Complete!") -> None:
         """Transition to success state with custom text.
@@ -325,7 +342,7 @@ class MessageComponent:
         self._last_word_change = None
         self._shimmer_start_time = None
         self._used_words.clear()
-        self._render_cache.clear()
+        self._cached_terminal_render = None
 
     def _select_new_word(self) -> None:
         """Select a new random word from the pool."""
@@ -340,7 +357,7 @@ class MessageComponent:
 
         # Track in history (keep last 5)
         self._used_words.append(self._current_word)
-        if len(self._used_words) > 5:
+        if len(self._used_words) > WORD_HISTORY_SIZE:
             self._used_words.pop(0)
 
     def _calculate_next_word_change(self, current_time: float) -> bool:
@@ -411,10 +428,10 @@ class MessageComponent:
         """
         if self._state == ComponentState.SUCCESS:
             # Success state - static text with success color
-            return Text(self._static_text, style=Style(color="#00FF00"))
+            return Text(self._static_text, style=Style(color=COLOR_SUCCESS))
         elif self._state == ComponentState.ERROR:
             # Error state - static text with error color
-            return Text(self._static_text, style=Style(color="#FF0000"))
+            return Text(self._static_text, style=Style(color=COLOR_ERROR))
         else:
             # In progress state - rotating words with optional shimmer
             # Check if word needs to change
@@ -446,19 +463,18 @@ class MessageComponent:
 
         current_time = console.get_time() if hasattr(console, "get_time") else time.time()
 
-        # Cache static states for performance
+        # Cache terminal states for performance
         if self._state in (ComponentState.SUCCESS, ComponentState.ERROR):
             cache_key = (self._state, self._static_text)
-            if cache_key in self._render_cache:
-                yield self._render_cache[cache_key]
+            if self._cached_terminal_render and self._cached_terminal_render[0] == cache_key:
+                yield self._cached_terminal_render[1]
                 return
+            rendered = self._render_current_state(current_time)
+            self._cached_terminal_render = (cache_key, rendered)
+            yield rendered
+            return
 
-        # Render and cache if needed
-        rendered = self._render_current_state(current_time)
-        if self._state != ComponentState.IN_PROGRESS:
-            cache_key = (self._state, self._static_text)
-            self._render_cache[cache_key] = rendered
-        yield rendered
+        yield self._render_current_state(current_time)
 
     def __rich_measure__(self, console: Console, options: ConsoleOptions) -> Measurement:
         """Measure the message width for layout.
@@ -502,7 +518,7 @@ class MessageComponent:
         return cls(
             action_words=config.get("action_words"),
             interval=config.get("interval"),
-            color=config.get("color", "#D97706"),
+            color=config.get("color", COLOR_DEFAULT),
             shimmer=config.get("shimmer"),
             suffix=config.get("suffix", "…"),
             visible=config.get("visible", True),

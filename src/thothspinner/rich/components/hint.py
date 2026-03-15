@@ -13,26 +13,10 @@ from rich.measure import Measurement
 from rich.style import Style
 from rich.text import Text
 
+from ...core.color import COLOR_HINT, validate_hex_color
 
-def _is_valid_hex_color(value: str) -> bool:
-    """Validate hex color format.
-
-    Args:
-        value: String to validate as hex color
-
-    Returns:
-        True if valid #RRGGBB format, False otherwise
-    """
-    if not isinstance(value, str):
-        return False
-    if len(value) != 7 or not value.startswith("#"):
-        return False
-    hexpart = value[1:]
-    try:
-        int(hexpart, 16)
-        return True
-    except ValueError:
-        return False
+# Hint component defaults
+DEFAULT_HINT_TEXT = "(esc to interrupt)"
 
 
 class HintComponent:
@@ -56,8 +40,8 @@ class HintComponent:
 
     def __init__(
         self,
-        text: str = "(esc to interrupt)",
-        color: str = "#888888",
+        text: str = DEFAULT_HINT_TEXT,
+        color: str = COLOR_HINT,
         visible: bool = True,
         **kwargs: Any,
     ) -> None:
@@ -76,8 +60,7 @@ class HintComponent:
         self._text = text
         self._visible = bool(visible)
         # Validate color
-        if not _is_valid_hex_color(color):
-            raise ValueError(f"Invalid hex color: {color!r}. Expected format '#RRGGBB'.")
+        validate_hex_color(color)
         self._color = color
         # Cache for performance optimization (based on Rich patterns)
         self._cached_renderable: Text | None = None
@@ -103,8 +86,7 @@ class HintComponent:
     @color.setter
     def color(self, value: str) -> None:
         """Set the color hex code."""
-        if not _is_valid_hex_color(value):
-            raise ValueError(f"Invalid hex color: {value!r}. Expected format '#RRGGBB'.")
+        validate_hex_color(value)
         self._color = value
         self._cached_renderable = None  # Invalidate cache
 
@@ -136,20 +118,18 @@ class HintComponent:
             >>> hint = HintComponent.from_config(config)
         """
         return cls(
-            text=config.get("text", "(esc to interrupt)"),
-            color=config.get("color", "#888888"),
+            text=config.get("text", DEFAULT_HINT_TEXT),
+            color=config.get("color", COLOR_HINT),
             visible=config.get("visible", True),
         )
 
-    def update(
+    def configure(
         self,
         text: str | None = None,
         color: str | None = None,
         visible: bool | None = None,
     ) -> None:
-        """Update component properties.
-
-        Future-proofing method for live updates (based on Rich patterns).
+        """Configure component properties.
 
         Args:
             text: New text to display
@@ -162,6 +142,9 @@ class HintComponent:
             self.color = color
         if visible is not None:
             self.visible = visible
+
+    # Backward-compatible alias
+    update = configure
 
     def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
         """Render the hint component for Rich console.

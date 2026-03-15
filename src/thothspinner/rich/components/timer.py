@@ -4,11 +4,14 @@ from time import time
 from typing import Any, Literal
 
 from rich.console import Console, ConsoleOptions, RenderResult
+from rich.measure import Measurement
 from rich.segment import Segment
 from rich.text import Text
 
+from ...core.color import COLOR_ERROR, COLOR_SUCCESS, COLOR_TIMER
+from ...core.states import ComponentState
 from .base import BaseComponent
-from .state import ComponentState, StateConfig
+from .state import StateConfig
 
 TimerFormat = Literal[
     "seconds",
@@ -28,9 +31,14 @@ class TimerComponent(BaseComponent):
     """Timer component with multiple time formats."""
 
     def __init__(
-        self, format: dict[str, Any] | None = None, color: str | None = None, precision: int = 1
+        self,
+        format: dict[str, Any] | None = None,
+        color: str | None = None,
+        precision: int = 1,
+        visible: bool = True,
     ):
         super().__init__(color)
+        self.visible = visible
         self.format = format or {"style": "auto"}
         self.format_style: TimerFormat = self.format.get("style", "auto")
         self.precision = self.format.get("precision", precision)
@@ -43,9 +51,11 @@ class TimerComponent(BaseComponent):
     def _get_default_state_configs(self) -> dict[ComponentState, StateConfig]:
         """Get default state configurations."""
         return {
-            ComponentState.IN_PROGRESS: StateConfig(animating=True, color=self.color or "#FFFF55"),
-            ComponentState.SUCCESS: StateConfig(animating=False, color="#00FF00"),
-            ComponentState.ERROR: StateConfig(animating=False, color="#FF0000"),
+            ComponentState.IN_PROGRESS: StateConfig(
+                animating=True, color=self.color or COLOR_TIMER
+            ),
+            ComponentState.SUCCESS: StateConfig(animating=False, color=COLOR_SUCCESS),
+            ComponentState.ERROR: StateConfig(animating=False, color=COLOR_ERROR),
         }
 
     def _format_time(self, elapsed: float) -> str:
@@ -143,6 +153,8 @@ class TimerComponent(BaseComponent):
 
     def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
         """Render the timer component."""
+        if not self.visible:
+            return
         config = self._state_configs[self._state]
 
         # Only update time if animating (in_progress)
@@ -172,14 +184,25 @@ class TimerComponent(BaseComponent):
         style = Style(color=config.color) if config.color else self._style
         return Text(self._format_time(elapsed), style=style)
 
+    def __rich_measure__(self, console: Console, options: ConsoleOptions) -> Measurement:
+        """Measure the timer component width for layout."""
+        if not self.visible:
+            return Measurement(0, 0)
+        text = Text(self._format_time(self.get_elapsed()))
+        return Measurement.get(console, options, text)
+
     # State management
     def success(self) -> None:
         """Transition to success state."""
+        if not self._state.can_transition_to(ComponentState.SUCCESS):
+            return
         self.stop()
         self._state = ComponentState.SUCCESS
 
     def error(self) -> None:
         """Transition to error state."""
+        if not self._state.can_transition_to(ComponentState.ERROR):
+            return
         self.stop()
         self._state = ComponentState.ERROR
 

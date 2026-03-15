@@ -6,7 +6,7 @@ from io import StringIO
 from rich.console import Console
 
 from thothspinner.rich.components import TimerComponent
-from thothspinner.rich.components.state import ComponentState
+from thothspinner.core.states import ComponentState
 
 
 class TestTimerComponent:

@@ -14,8 +14,16 @@ from rich.measure import Measurement
 from rich.style import Style
 from rich.text import Text
 
+from ...core.color import COLOR_DEFAULT, COLOR_ERROR, COLOR_SUCCESS, validate_hex_color
 from ...core.states import ComponentState
 from ..spinners.frames import SPINNER_FRAMES
+
+# Spinner component defaults
+DEFAULT_INTERVAL = 0.08
+DEFAULT_SPEED = 1.0
+DEFAULT_STYLE = "npm_dots"
+DEFAULT_SUCCESS_ICON = "✓"
+DEFAULT_ERROR_ICON = "✗"
 
 
 class SpinnerComponent:
@@ -48,13 +56,13 @@ class SpinnerComponent:
     def __init__(
         self,
         frames: list[str] | None = None,
-        interval: float = 0.08,
-        color: str = "#D97706",
-        style: str = "npm_dots",
-        success_icon: str = "✓",
-        error_icon: str = "✗",
+        interval: float = DEFAULT_INTERVAL,
+        color: str = COLOR_DEFAULT,
+        style: str = DEFAULT_STYLE,
+        success_icon: str = DEFAULT_SUCCESS_ICON,
+        error_icon: str = DEFAULT_ERROR_ICON,
         visible: bool = True,
-        speed: float = 1.0,
+        speed: float = DEFAULT_SPEED,
         **kwargs: Any,
     ) -> None:
         """Initialize the SpinnerComponent.
@@ -81,6 +89,7 @@ class SpinnerComponent:
             self.frames = frames
             self.interval = interval
 
+        validate_hex_color(color)
         self.color = color
         self.success_icon = success_icon
         self.error_icon = error_icon
@@ -192,13 +201,13 @@ class SpinnerComponent:
         """
         return cls(
             frames=config.get("frames"),
-            interval=config.get("interval", 0.08),
-            color=config.get("color", "#D97706"),
-            style=config.get("style", "npm_dots"),
-            success_icon=config.get("success_icon", "✓"),
-            error_icon=config.get("error_icon", "✗"),
+            interval=config.get("interval", DEFAULT_INTERVAL),
+            color=config.get("color", COLOR_DEFAULT),
+            style=config.get("style", DEFAULT_STYLE),
+            success_icon=config.get("success_icon", DEFAULT_SUCCESS_ICON),
+            error_icon=config.get("error_icon", DEFAULT_ERROR_ICON),
             visible=config.get("visible", True),
-            speed=config.get("speed", 1.0),
+            speed=config.get("speed", DEFAULT_SPEED),
         )
 
     def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
@@ -223,11 +232,11 @@ class SpinnerComponent:
 
         if self._state == ComponentState.SUCCESS:
             # Display success icon in green
-            style = Style(color="#00FF00")
+            style = Style(color=COLOR_SUCCESS)
             yield Text(self.success_icon, style=style)
         elif self._state == ComponentState.ERROR:
             # Display error icon in red
-            style = Style(color="#FF0000")
+            style = Style(color=COLOR_ERROR)
             yield Text(self.error_icon, style=style)
         else:
             # Animate spinner using time-based calculation

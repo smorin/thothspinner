@@ -1,6 +1,16 @@
-"""Shared color validation utilities for ThothSpinner widgets."""
+"""Shared color validation utilities and constants for ThothSpinner widgets."""
 
 from __future__ import annotations
+
+# Standard state colors
+COLOR_SUCCESS = "#00FF00"
+COLOR_ERROR = "#FF0000"
+COLOR_DEFAULT = "#D97706"
+
+# Component-specific colors
+COLOR_SHIMMER = "#FFA500"
+COLOR_HINT = "#888888"
+COLOR_TIMER = "#FFFF55"
 
 
 def validate_hex_color(color: str) -> str:
@@ -16,11 +26,9 @@ def validate_hex_color(color: str) -> str:
         ValueError: If color format is invalid.
     """
     if not isinstance(color, str):
-        raise ValueError(f"Color must be a string, got {type(color)}")
-    if not color.startswith("#"):
-        raise ValueError(f"Color must start with #, got {color}")
-    if len(color) != 7:
-        raise ValueError(f"Color must be #RRGGBB format, got {color}")
+        raise ValueError(f"Invalid hex color: expected string, got {type(color)}")
+    if not color.startswith("#") or len(color) != 7:
+        raise ValueError(f"Invalid hex color: {color}")
     try:
         int(color[1:], 16)
     except ValueError as err:

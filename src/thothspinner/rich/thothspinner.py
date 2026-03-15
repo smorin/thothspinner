@@ -16,6 +16,7 @@ from rich.console import Console, ConsoleOptions, Group, RenderResult
 from rich.measure import Measurement
 from rich.text import Text
 
+from thothspinner.core.color import COLOR_DEFAULT, COLOR_ERROR, COLOR_SUCCESS
 from thothspinner.core.states import ComponentState
 from thothspinner.rich.components import (
     HintComponent,
@@ -141,10 +142,10 @@ class ThothSpinner:
         # Start with defaults
         result = {
             "defaults": {
-                "color": "#D97706",
+                "color": COLOR_DEFAULT,
                 "visible": True,
-                "success": {"color": "#00FF00", "behavior": "indicator"},
-                "error": {"color": "#FF0000", "behavior": "indicator"},
+                "success": {"color": COLOR_SUCCESS, "behavior": "indicator"},
+                "error": {"color": COLOR_ERROR, "behavior": "indicator"},
             },
             "elements": {},
             "render_order": list(self._render_order),  # Convert tuple to list for config
@@ -220,10 +221,10 @@ class ThothSpinner:
         # Ensure defaults exist
         if "defaults" not in config:
             config["defaults"] = {
-                "color": "#D97706",
+                "color": COLOR_DEFAULT,
                 "visible": True,
-                "success": {"color": "#00FF00", "behavior": "indicator"},
-                "error": {"color": "#FF0000", "behavior": "indicator"},
+                "success": {"color": COLOR_SUCCESS, "behavior": "indicator"},
+                "error": {"color": COLOR_ERROR, "behavior": "indicator"},
             }
 
         # Ensure elements dict exists
@@ -475,6 +476,11 @@ class ThothSpinner:
     def reset(self) -> None:
         """Return to in_progress state."""
         with self._lock:
+            # Cancel any pending auto-clear timer
+            if self._clear_timer:
+                self._clear_timer.cancel()
+                self._clear_timer = None
+
             self._state = ComponentState.IN_PROGRESS
             self._fade_progress = None
 
@@ -533,18 +539,9 @@ class ThothSpinner:
                 method_name = state_name  # 'success', 'error'
                 if hasattr(component, method_name):
                     method = getattr(component, method_name)
-                    # Check if method accepts message parameter
-                    import inspect
-
                     try:
-                        sig = inspect.signature(method)
-                        # If method accepts more than just self, try passing message
-                        if len(sig.parameters) > 0:
-                            method(message)
-                        else:
-                            method()
+                        method(message)
                     except TypeError:
-                        # Fallback if signature inspection fails
                         method()
             elif behavior == "message":
                 if hasattr(component, "set_text"):
@@ -554,15 +551,8 @@ class ThothSpinner:
                 method_name = state_name
                 if hasattr(component, method_name):
                     method = getattr(component, method_name)
-                    # Check if method accepts message parameter
-                    import inspect
-
                     try:
-                        sig = inspect.signature(method)
-                        if len(sig.parameters) > 0:
-                            method(message)
-                        else:
-                            method()
+                        method(message)
                     except TypeError:
                         method()
                 if hasattr(component, "set_text"):
@@ -620,21 +610,24 @@ class ThothSpinner:
         with self._lock:
             try:
                 message = self.get_component("message")
-                if hasattr(message, "update"):
-                    message.update(text=text)
+                if hasattr(message, "configure"):
+                    message.configure(text=text)
             except KeyError:
                 pass
 
     def set_spinner_style(self, *, style: str) -> None:
         """Change spinner style (keyword-only)."""
+        from thothspinner.rich.spinners.frames import SPINNER_FRAMES
+
         with self._lock:
-            try:
-                # Recreate spinner with new style
-                config = self._resolve_config("spinner")
-                config["style"] = style
-                self._components["spinner"] = SpinnerComponent(**config)
-            except KeyError:
-                pass
+            spinner = self._components.get("spinner")
+            if spinner is None:
+                return
+            if style in SPINNER_FRAMES:
+                spinner_def = SPINNER_FRAMES[style]
+                spinner.frames = spinner_def["frames"]
+                spinner.interval = spinner_def["interval"]
+                spinner._start_time = None  # Reset animation
 
     def set_hint(self, *, text: str) -> None:
         """Update hint text (keyword-only)."""
@@ -657,8 +650,8 @@ class ThothSpinner:
         """
         with self._lock:
             component = self.get_component(component_type)  # Will raise KeyError if invalid
-            if hasattr(component, "update"):
-                component.update(**kwargs)
+            if hasattr(component, "configure"):
+                component.configure(**kwargs)
             else:
                 # Set attributes directly if no update method
                 for key, value in kwargs.items():
