@@ -237,7 +237,7 @@ To be defined in M12.md
 
 ---
 
-## [ ] Milestone M13: Textual Components Documentation (v0.13.0)
+## [x] Milestone M13: Textual Components Documentation (v0.13.0)
 **Goal/Requirement**: Document all Textual components
 - Document all Textual components
 - Create Textual-specific examples
