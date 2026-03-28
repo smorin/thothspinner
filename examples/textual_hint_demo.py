@@ -83,11 +83,11 @@ class HintDemo(App):
             hint = self.query_one("#icon-hint", HintWidget)
             # Cycle through different messages
             if hint.text == "Loading data":
-                hint.update(text="Processing...", icon="🔄", color="#00FFFF")
+                hint.configure(text="Processing...", icon="🔄", color="#00FFFF")
             elif hint.text == "Processing...":
-                hint.update(text="Almost done!", icon="⏳", color="#FFFF00")
+                hint.configure(text="Almost done!", icon="⏳", color="#FFFF00")
             else:
-                hint.update(text="Loading data", icon="⚠", color="#FFA500")
+                hint.configure(text="Loading data", icon="⚠", color="#FFA500")
 
         elif button_id == "show-success":
             # Hide error, show success
