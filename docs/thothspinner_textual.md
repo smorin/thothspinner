@@ -236,6 +236,15 @@ All parameters after `style` are keyword-only.
 - `zodiac`: Cycling through the 12 zodiac signs (`♈♉♊…♓`)
 - `rune`: Elder Futhark letters cycling (`ᚠᚢᚦᚨᚱᚲ…`)
 - `matrix`: Half-width katakana cycling at high speed (`ｦｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃ`)
+- `orbit`: Circle filling and emptying (`○◔◑◕●◕◑◔`)
+- `diamond`: Diamond morphing hollow to filled (`◇◈◆◈`)
+- `toggle`: Switch flipping off to on (`◯⊙●⊙`)
+- `cursor`: Blinking block cursor (`█` / ` `)
+- `suits`: Playing card suits cycling (`♠♣♥♦`)
+- `notes`: Musical notes with accidentals (`♩♪♫♬♭♮♯`)
+- `heartbeat`: Heart building intensity and falling (`♡❣♥❤♥❣♡`)
+- `weather`: Unicode weather symbols sun to snow (`☀☁☂☃`)
+- `rings`: Expanding ripple rings (`·○◎⊚◎○·`)
 
 #### Default CSS
 

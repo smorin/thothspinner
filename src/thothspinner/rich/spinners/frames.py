@@ -132,6 +132,42 @@ SPINNER_FRAMES: dict[str, SpinnerDefinition] = {
         "frames": ["ｦ", "ｱ", "ｲ", "ｳ", "ｴ", "ｵ", "ｶ", "ｷ", "ｸ", "ｹ", "ｺ", "ｻ", "ｼ", "ｽ", "ｾ", "ｿ", "ﾀ", "ﾁ", "ﾂ", "ﾃ"],
         "interval": 0.06,
     },
+    "orbit": {
+        "frames": ["○", "◔", "◑", "◕", "●", "◕", "◑", "◔"],
+        "interval": 0.12,
+    },
+    "diamond": {
+        "frames": ["◇", "◈", "◆", "◈"],
+        "interval": 0.12,
+    },
+    "toggle": {
+        "frames": ["◯", "⊙", "●", "⊙"],
+        "interval": 0.12,
+    },
+    "cursor": {
+        "frames": ["█", " "],
+        "interval": 0.5,
+    },
+    "suits": {
+        "frames": ["♠", "♣", "♥", "♦"],
+        "interval": 0.1,
+    },
+    "notes": {
+        "frames": ["♩", "♪", "♫", "♬", "♭", "♮", "♯"],
+        "interval": 0.12,
+    },
+    "heartbeat": {
+        "frames": ["♡", "❣", "♥", "❤", "♥", "❣", "♡"],
+        "interval": 0.12,
+    },
+    "weather": {
+        "frames": ["☀", "☁", "☂", "☃"],
+        "interval": 0.2,
+    },
+    "rings": {
+        "frames": ["·", "○", "◎", "⊚", "◎", "○", "·"],
+        "interval": 0.12,
+    },
 }
 
 
