@@ -140,6 +140,7 @@ class MessageWidget(Static):
         self._next_interval: float = 0.0
         self._shimmer_start_time: float | None = None
         self._animation_timer: TextualTimer | None = None
+        self._pinned_text: bool = False
 
         if not visible:
             self.display = False
@@ -226,6 +227,9 @@ class MessageWidget(Static):
         Returns:
             True if word should change, False otherwise
         """
+        if self._pinned_text:
+            return False
+
         if self._last_word_change is None:
             self._last_word_change = current_time
             self._next_interval = random.uniform(self._min_interval, self._max_interval)
@@ -359,12 +363,14 @@ class MessageWidget(Static):
         """
         if text is not None:
             self._current_word = text
-            self._last_word_change = None
+            self._last_word_change = monotonic()
             self._shimmer_start_time = None
+            self._pinned_text = True
 
         if trigger_new:
+            self._pinned_text = False
             self._select_new_word()
-            self._last_word_change = None
+            self._last_word_change = monotonic()
             self._shimmer_start_time = None
 
         if reverse_shimmer is not None:
@@ -404,6 +410,7 @@ class MessageWidget(Static):
         self._last_word_change = None
         self._shimmer_start_time = None
         self._used_words.clear()
+        self._pinned_text = False
         self._state = ComponentState.IN_PROGRESS
 
     # --- Visibility methods ---

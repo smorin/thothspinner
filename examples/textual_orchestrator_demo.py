@@ -38,8 +38,24 @@ class OrchestratorDemo(App):
     }
 
     ThothSpinnerWidget {
+        height: auto;
         margin: 1 0;
         width: 100%;
+    }
+
+    ThothSpinnerWidget Horizontal {
+        height: auto;
+        layout: vertical;
+    }
+
+    ThothSpinnerWidget SpinnerWidget,
+    ThothSpinnerWidget MessageWidget,
+    ThothSpinnerWidget ProgressWidget,
+    ThothSpinnerWidget TimerWidget,
+    ThothSpinnerWidget HintWidget {
+        height: 1;
+        width: 100%;
+        margin: 0 0 1 0;
     }
 
     #nav-hint {

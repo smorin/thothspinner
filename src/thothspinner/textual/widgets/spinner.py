@@ -294,6 +294,7 @@ class SpinnerWidget(Static):
             if self._state == ComponentState.IN_PROGRESS and not self._paused:
                 effective_interval = self._interval / self._speed
                 self._timer = self.set_interval(effective_interval, self._advance_frame)
+            self.refresh()
 
     def show(self) -> None:
         """Show the spinner widget."""
