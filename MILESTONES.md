@@ -261,7 +261,7 @@ To be defined in M14.md
 
 ---
 
-## [ ] Milestone M15: Progress Bar Format & Animation Smoothing (v1.1.0)
+## [x] Milestone M15: Progress Bar Format & Animation Smoothing (v1.1.0)
 **Goal/Requirement**: Extend the Textual ProgressWidget with visual bar format and smooth animated transitions
 - Add "bar" format style with configurable fill characters, width, and brackets
 - Add smooth animated transitions when progress values change

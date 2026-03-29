@@ -522,3 +522,289 @@ async def test_widget_lifecycle():
 
         await progress.remove()
         assert progress not in pilot.app.query(ProgressWidget)
+
+
+# ─── M15: Bar Format Tests ────────────────────────────────────────────────────
+
+
+def test_bar_format_default_rendering():
+    """Test bar format default rendering at 20%."""
+    widget = ProgressWidget(current=20, total=100, format_style="bar")
+    # ratio=0.2, filled=round(0.2*20)=4, width=20
+    assert widget._format_progress() == "[████░░░░░░░░░░░░░░░░] 20%"
+
+
+def test_bar_format_at_0_50_100_percent():
+    """Test bar format at 0%, 50%, and 100%."""
+    widget = ProgressWidget(current=0, total=100, format_style="bar")
+    assert widget._format_progress() == "[░░░░░░░░░░░░░░░░░░░░] 0%"
+
+    widget.set(50)
+    assert widget._format_progress() == "[██████████░░░░░░░░░░] 50%"
+
+    widget.set(100)
+    assert widget._format_progress() == "[████████████████████] 100%"
+
+
+def test_bar_format_custom_characters():
+    """Test bar format with custom fill and empty characters."""
+    widget = ProgressWidget(
+        current=50, total=100, format_style="bar",
+        bar_filled="#", bar_empty="-", bar_width=10,
+    )
+    assert widget._format_progress() == "[#####-----] 50%"
+
+
+def test_bar_format_custom_width():
+    """Test bar format with custom width."""
+    widget = ProgressWidget(current=50, total=100, format_style="bar", bar_width=10)
+    assert widget._format_progress() == "[█████░░░░░] 50%"
+
+    widget2 = ProgressWidget(current=25, total=100, format_style="bar", bar_width=40)
+    # filled = round(0.25 * 40) = 10
+    assert widget2._format_progress() == "[██████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░] 25%"
+
+
+def test_bar_format_no_brackets():
+    """Test bar_brackets=False omits surrounding brackets."""
+    widget = ProgressWidget(
+        current=50, total=100, format_style="bar", bar_brackets=False
+    )
+    assert widget._format_progress() == "██████████░░░░░░░░░░ 50%"
+
+
+def test_bar_format_no_percentage_suffix():
+    """Test bar_show_percentage=False omits percentage text."""
+    widget = ProgressWidget(
+        current=50, total=100, format_style="bar", bar_show_percentage=False
+    )
+    assert widget._format_progress() == "[██████████░░░░░░░░░░]"
+
+
+def test_bar_format_zero_total():
+    """Test bar format with zero total does not raise ZeroDivisionError."""
+    widget = ProgressWidget(current=0, total=0, format_style="bar")
+    result = widget._format_progress()
+    assert result == "[░░░░░░░░░░░░░░░░░░░░] 0%"
+
+
+def test_bar_format_in_success_error_state():
+    """Test bar format shows state text, not bar, in terminal states."""
+    widget = ProgressWidget(current=50, total=100, format_style="bar")
+    widget._state = ComponentState.SUCCESS
+    rendered = widget.render()
+    assert "█" not in rendered.plain
+    assert rendered.plain == "100%"
+
+    widget._state = ComponentState.ERROR
+    rendered = widget.render()
+    assert "█" not in rendered.plain
+    assert rendered.plain == "Failed"
+
+
+def test_bar_format_from_config():
+    """Test from_config creates bar format widget with bar configuration."""
+    config = {
+        "format_style": "bar",
+        "bar_width": 10,
+        "bar_filled": "#",
+        "bar_empty": "-",
+        "bar_brackets": False,
+        "bar_show_percentage": False,
+        "current": 50,
+        "total": 100,
+    }
+    widget = ProgressWidget.from_config(config)
+    assert widget._format_progress() == "#####-----"
+
+
+@pytest.mark.asyncio
+async def test_bar_format_reactivity():
+    """Test bar format updates when current changes."""
+
+    class BarApp(App):
+        def compose(self) -> ComposeResult:
+            yield ProgressWidget(
+                current=0, total=100,
+                format_style="bar",
+                bar_width=10,
+                bar_brackets=False,
+                bar_show_percentage=False,
+                id="progress",
+            )
+
+    async with BarApp().run_test() as pilot:
+        progress = pilot.app.query_one("#progress", ProgressWidget)
+        assert progress.render().plain == "░░░░░░░░░░"
+
+        progress.set(50)
+        await pilot.pause()
+        assert progress.render().plain == "█████░░░░░"
+
+        progress.set(100)
+        await pilot.pause()
+        assert progress.render().plain == "██████████"
+
+
+# ─── M15: Animation Tests ─────────────────────────────────────────────────────
+
+
+def test_animate_false_default_behavior():
+    """Test animate=False does not create timer and matches current behavior."""
+    widget = ProgressWidget(current=0, total=100, animate=False)
+    assert widget._animate is False
+    assert widget._display_current == 0.0
+    assert widget._animation_timer is None
+
+
+def test_easing_linear():
+    """Test linear easing function."""
+    assert ProgressWidget._ease_linear(0.0) == 0.0
+    assert ProgressWidget._ease_linear(0.5) == 0.5
+    assert ProgressWidget._ease_linear(1.0) == 1.0
+
+
+def test_easing_ease_in():
+    """Test ease_in easing function (quadratic)."""
+    assert ProgressWidget._ease_in(0.0) == 0.0
+    assert ProgressWidget._ease_in(0.5) == 0.25
+    assert ProgressWidget._ease_in(1.0) == 1.0
+
+
+def test_easing_ease_out():
+    """Test ease_out easing function."""
+    assert ProgressWidget._ease_out(0.0) == 0.0
+    assert ProgressWidget._ease_out(0.5) == 0.75
+    assert ProgressWidget._ease_out(1.0) == 1.0
+
+
+def test_easing_ease_in_out():
+    """Test ease_in_out easing function (smooth cubic)."""
+    assert ProgressWidget._ease_in_out(0.0) == 0.0
+    assert ProgressWidget._ease_in_out(0.5) == 0.5
+    assert ProgressWidget._ease_in_out(1.0) == 1.0
+
+
+@pytest.mark.asyncio
+async def test_animate_true_smooth_transitions():
+    """Test animate=True creates timer and smoothly transitions display value."""
+
+    class AnimApp(App):
+        def compose(self) -> ComposeResult:
+            yield ProgressWidget(
+                current=0, total=100,
+                animate=True,
+                animation_duration=0.1,
+                id="progress",
+            )
+
+    async with AnimApp().run_test() as pilot:
+        progress = pilot.app.query_one("#progress", ProgressWidget)
+        assert progress._display_current == 0.0
+
+        progress.set(100)
+        await pilot.pause()
+
+        # Animation timer should be running
+        assert progress._animation_timer is not None
+        # Display value should not have jumped immediately to target
+        assert progress._display_current < 100.0
+
+        # Wait for animation to complete (> animation_duration of 100ms)
+        await pilot.pause(delay=0.3)
+        assert abs(progress._display_current - 100.0) < 0.01
+        assert progress._animation_timer is None
+
+
+@pytest.mark.asyncio
+async def test_rapid_updates_interrupt_animation():
+    """Test that a second set() before animation completes updates the target."""
+
+    class AnimApp(App):
+        def compose(self) -> ComposeResult:
+            yield ProgressWidget(
+                current=0, total=100,
+                animate=True,
+                animation_duration=2.0,
+                id="progress",
+            )
+
+    async with AnimApp().run_test() as pilot:
+        progress = pilot.app.query_one("#progress", ProgressWidget)
+
+        progress.set(50)
+        await pilot.pause()
+        assert progress._animation_timer is not None
+
+        # Interrupt with a new target
+        progress.set(80)
+        await pilot.pause()
+
+        assert progress._animation_timer is not None
+        assert progress._animation_target_value == 80.0
+
+
+@pytest.mark.asyncio
+async def test_state_transition_cancels_animation():
+    """Test that success()/error() cancels a running animation."""
+
+    class AnimApp(App):
+        def compose(self) -> ComposeResult:
+            yield ProgressWidget(
+                current=0, total=100,
+                animate=True,
+                animation_duration=2.0,
+                id="progress",
+            )
+
+    async with AnimApp().run_test() as pilot:
+        progress = pilot.app.query_one("#progress", ProgressWidget)
+
+        progress.set(100)
+        await pilot.pause()
+        assert progress._animation_timer is not None
+
+        progress.success()
+        await pilot.pause()
+        assert progress._animation_timer is None
+        assert progress.render().plain == "100%"
+
+
+@pytest.mark.asyncio
+async def test_reset_cancels_animation_and_jumps_to_zero():
+    """Test that reset() cancels animation and immediately sets display to 0."""
+
+    class AnimApp(App):
+        def compose(self) -> ComposeResult:
+            yield ProgressWidget(
+                current=0, total=100,
+                animate=True,
+                animation_duration=2.0,
+                id="progress",
+            )
+
+    async with AnimApp().run_test() as pilot:
+        progress = pilot.app.query_one("#progress", ProgressWidget)
+
+        progress.set(100)
+        await pilot.pause()
+        assert progress._animation_timer is not None
+
+        progress.reset()
+        await pilot.pause()
+        assert progress._animation_timer is None
+        assert progress._display_current == 0.0
+        assert progress.current == 0
+
+
+def test_animation_from_config():
+    """Test from_config accepts animation configuration keys."""
+    config = {
+        "animate": True,
+        "animation_duration": 0.5,
+        "animation_easing": "ease_out",
+    }
+    widget = ProgressWidget.from_config(config)
+    assert widget._animate is True
+    assert widget._animation_duration == 0.5
+    assert widget._animation_easing == "ease_out"
