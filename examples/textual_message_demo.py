@@ -3,13 +3,15 @@
 
 from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
-from textual.widgets import Button, Label
+from textual.widgets import Button, Footer, Label
 
 from thothspinner.textual.widgets import MessageWidget
 
 
 class MessageDemo(App):
     """Demo application for MessageWidget."""
+
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -58,6 +60,8 @@ class MessageDemo(App):
                 yield Button("Success", id="success")
                 yield Button("Error", id="error")
                 yield Button("Reset", id="reset")
+
+        yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         message = self.query_one("#message", MessageWidget)

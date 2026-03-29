@@ -5,13 +5,15 @@ import asyncio
 
 from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
-from textual.widgets import Button, Label
+from textual.widgets import Button, Footer, Label
 
 from thothspinner.textual import TextualThothSpinner
 
 
 class OrchestratorDemo(App):
     """Demo application for ThothSpinnerWidget orchestrator."""
+
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -62,6 +64,8 @@ class OrchestratorDemo(App):
                 yield Button("Toggle Shimmer Direction", id="shimmer-dir")
                 yield Button("Error Demo", id="error")
                 yield Button("Reset", id="reset")
+
+        yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         spinner = self.query_one("#spinner", TextualThothSpinner)

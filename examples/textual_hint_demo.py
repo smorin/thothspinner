@@ -3,13 +3,15 @@
 
 from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
-from textual.widgets import Button, Label
+from textual.widgets import Button, Footer, Label
 
 from thothspinner.textual.widgets import HintWidget
 
 
 class HintDemo(App):
     """Demo application for HintWidget."""
+
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -70,6 +72,8 @@ class HintDemo(App):
                 yield Button("Show Success", id="show-success")
                 yield Button("Show Error", id="show-error")
                 yield Button("Fade In/Out Demo", id="fade-demo")
+
+        yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         """Handle button presses."""

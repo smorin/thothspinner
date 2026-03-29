@@ -3,13 +3,15 @@
 
 from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
-from textual.widgets import Button, Label
+from textual.widgets import Button, Footer, Label
 
 from thothspinner.textual.widgets import TimerWidget
 
 
 class TimerDemo(App):
     """Demo application for TimerWidget."""
+
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -58,6 +60,8 @@ class TimerDemo(App):
                 yield Button("Pause / Resume All", id="pause")
                 yield Button("Reset All", id="reset")
                 yield Button("Success", id="success")
+
+        yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         timers = list(self.query(TimerWidget))

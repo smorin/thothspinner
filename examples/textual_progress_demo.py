@@ -3,13 +3,15 @@
 
 from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
-from textual.widgets import Button, Label
+from textual.widgets import Button, Footer, Label
 
 from thothspinner.textual.widgets import ProgressWidget
 
 
 class ProgressDemo(App):
     """Demo application for ProgressWidget."""
+
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -57,6 +59,8 @@ class ProgressDemo(App):
                 yield Button("Increment All (+10)", id="increment")
                 yield Button("Reset All", id="reset")
                 yield Button("Success All", id="success")
+
+        yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         widgets = self.query(ProgressWidget)

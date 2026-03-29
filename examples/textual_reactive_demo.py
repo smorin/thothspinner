@@ -3,13 +3,15 @@
 
 from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
-from textual.widgets import Button, Input, Label
+from textual.widgets import Button, Footer, Input, Label
 
 from thothspinner.textual.widgets import HintWidget, ProgressWidget, SpinnerWidget
 
 
 class ReactiveDemo(App):
     """Demo showing reactive property updates and state CSS classes."""
+
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -65,6 +67,8 @@ class ReactiveDemo(App):
                 yield Button("Success All", id="success")
                 yield Button("Error All", id="error")
                 yield Button("Reset All", id="reset")
+
+        yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "apply-color":

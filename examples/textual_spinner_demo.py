@@ -3,7 +3,7 @@
 
 from textual.app import App, ComposeResult
 from textual.containers import Container, Vertical
-from textual.widgets import Button, Label
+from textual.widgets import Button, Footer, Label
 
 from thothspinner.textual.widgets import SpinnerWidget
 
@@ -13,6 +13,8 @@ STYLES = ["npm_dots", "claude_stars", "dots", "line", "arc", "circle"]
 
 class SpinnerDemo(App):
     """Demo application for SpinnerWidget."""
+
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -59,6 +61,8 @@ class SpinnerDemo(App):
                 yield Button("Success", id="success")
                 yield Button("Error", id="error")
                 yield Button("Reset", id="reset")
+
+        yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         spinner = self.query_one("#spinner", SpinnerWidget)
