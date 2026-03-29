@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 from unittest.mock import patch
 
@@ -312,6 +313,46 @@ class TestStateManagement:
         assert widget.message.state == ComponentState.IN_PROGRESS
         assert widget.progress.state == ComponentState.IN_PROGRESS
         assert widget.timer.state == ComponentState.IN_PROGRESS
+
+    @pytest.mark.parametrize("terminal_method", ["success", "error"])
+    def test_start_after_terminal_state_restarts_children(self, terminal_method):
+        """start() fully restarts children after a terminal state."""
+        widget = ThothSpinnerWidget()
+
+        widget.start()
+        widget.update_progress(current=42, total=100)
+        time.sleep(0.02)
+        getattr(widget, terminal_method)("Done")
+        widget.clear()
+        widget.start()
+
+        assert widget.state == ComponentState.IN_PROGRESS
+        assert widget.spinner.state == ComponentState.IN_PROGRESS
+        assert widget.message.state == ComponentState.IN_PROGRESS
+        assert widget.progress.state == ComponentState.IN_PROGRESS
+        assert widget.timer.state == ComponentState.IN_PROGRESS
+        assert widget.progress.current == 0
+        assert widget.timer.running is True
+        assert widget.timer.get_elapsed() < 0.1
+        assert all(component.display for component in widget._components.values())
+        assert widget.progress.render().plain.lower() != "done"
+        assert widget.timer.render().plain.lower() != "done"
+
+    def test_start_while_in_progress_preserves_progress_and_timer(self):
+        """start() should stay non-destructive during an active run."""
+        widget = ThothSpinnerWidget()
+
+        widget.start()
+        widget.update_progress(current=42, total=100)
+        time.sleep(0.02)
+        elapsed_before = widget.timer.get_elapsed()
+
+        widget.start()
+
+        assert widget.state == ComponentState.IN_PROGRESS
+        assert widget.progress.current == 42
+        assert widget.timer.running is True
+        assert widget.timer.get_elapsed() >= elapsed_before
 
     def test_reset_restores_configured_component_visibility(self):
         """Reset restores each child to its configured default display state."""

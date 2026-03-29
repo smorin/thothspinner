@@ -202,6 +202,49 @@ class TestStateManagement:
 
         assert spinner.state == ComponentState.IN_PROGRESS
 
+    @pytest.mark.parametrize("terminal_method", ["success", "error"])
+    def test_start_after_terminal_state_restarts_children(self, terminal_method):
+        """start() fully restarts children after a terminal state."""
+        console = Console(file=StringIO(), force_terminal=True, width=80)
+        spinner = ThothSpinner()
+
+        spinner.start()
+        spinner.update_progress(current=42, total=100)
+        time.sleep(0.02)
+        getattr(spinner, terminal_method)("Done")
+        spinner.clear()
+        spinner.start()
+
+        console.print(spinner)
+        output = console.file.getvalue()
+
+        assert spinner.state == ComponentState.IN_PROGRESS
+        assert spinner.get_component("spinner").state == ComponentState.IN_PROGRESS
+        assert spinner.get_component("message").state == ComponentState.IN_PROGRESS
+        assert spinner.get_component("progress")._state == ComponentState.IN_PROGRESS
+        assert spinner.get_component("timer")._state == ComponentState.IN_PROGRESS
+        assert spinner.get_component("progress").current == 0
+        assert spinner.get_component("timer").is_running() is True
+        assert spinner.get_component("timer").get_elapsed() < 0.1
+        assert all(component.visible for component in spinner._components.values())
+        assert "done" not in output.lower()
+
+    def test_start_while_in_progress_preserves_progress_and_timer(self):
+        """start() should stay non-destructive during an active run."""
+        spinner = ThothSpinner()
+
+        spinner.start()
+        spinner.update_progress(current=42, total=100)
+        time.sleep(0.02)
+        elapsed_before = spinner.get_component("timer").get_elapsed()
+
+        spinner.start()
+
+        assert spinner.state == ComponentState.IN_PROGRESS
+        assert spinner.get_component("progress").current == 42
+        assert spinner.get_component("timer").is_running() is True
+        assert spinner.get_component("timer").get_elapsed() >= elapsed_before
+
     def test_reset_restores_configured_component_visibility(self):
         """Test reset restores each component's configured visibility."""
         spinner = ThothSpinner(elements={"hint": {"visible": False}})

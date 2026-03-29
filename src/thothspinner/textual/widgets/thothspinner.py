@@ -459,13 +459,28 @@ class ThothSpinnerWidget(Widget, can_focus=False):
                 f"Invalid state transition from {self._state.name} to {new_state.name}"
             )
 
+    def _reset_to_in_progress(self) -> None:
+        """Reset child widgets and orchestrator state."""
+        self._cancel_clear_timer()
+        self._state = ComponentState.IN_PROGRESS
+
+        for name in self._render_order:
+            component = self._components.get(name)
+            if component is not None and hasattr(component, "reset"):
+                component.reset()  # type: ignore[union-attr]
+            if component is not None:
+                component.display = self._component_display_defaults.get(name, True)
+
     def start(self) -> None:
         """Start the orchestrator in in_progress state.
 
         Starts the spinner animation and timer.
         """
-        self._state = ComponentState.IN_PROGRESS
-        self._cancel_clear_timer()
+        if self._state in (ComponentState.SUCCESS, ComponentState.ERROR):
+            self._reset_to_in_progress()
+        else:
+            self._state = ComponentState.IN_PROGRESS
+            self._cancel_clear_timer()
 
         # Start animated components
         spinner = self._components["spinner"]
@@ -515,15 +530,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
 
         Resets all child widgets and cancels any pending auto-clear.
         """
-        self._cancel_clear_timer()
-        self._state = ComponentState.IN_PROGRESS
-
-        for name in self._render_order:
-            component = self._components.get(name)
-            if component is not None and hasattr(component, "reset"):
-                component.reset()  # type: ignore[union-attr]
-            if component is not None:
-                component.display = self._component_display_defaults.get(name, True)
+        self._reset_to_in_progress()
 
     def clear(self) -> None:
         """Hide all child widgets and cancel auto-clear timer."""

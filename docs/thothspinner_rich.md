@@ -432,7 +432,9 @@ config = {
 #### State Management
 
 ##### `start() -> None`
-Begin in `IN_PROGRESS` state, starting all animations.
+Begin in `IN_PROGRESS` state, starting all animations. If called after
+`SUCCESS` or `ERROR`, performs a full child reset before restarting the
+spinner and timer.
 
 ##### `success(message: Optional[str] = None, duration: Optional[float] = None) -> None`
 Transition to success state with optional message and auto-clear duration.

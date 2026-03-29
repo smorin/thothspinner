@@ -312,12 +312,18 @@ def reset(self) -> None:
 
 ### `start()` propagation
 
-`start()` on the orchestrator explicitly starts animated children:
+`start()` on the orchestrator explicitly starts animated children. When the
+orchestrator is in `SUCCESS` or `ERROR`, it first resets all children back to
+`IN_PROGRESS` so stale terminal output is cleared before the spinner and timer
+restart:
 
 ```python
 def start(self) -> None:
-    self._state = ComponentState.IN_PROGRESS
-    self._cancel_clear_timer()
+    if self._state in (ComponentState.SUCCESS, ComponentState.ERROR):
+        self._reset_to_in_progress()
+    else:
+        self._state = ComponentState.IN_PROGRESS
+        self._cancel_clear_timer()
     spinner = self._components["spinner"]
     if hasattr(spinner, "start"):
         spinner.start()

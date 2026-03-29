@@ -718,7 +718,8 @@ ThothSpinnerWidget Horizontal {
 #### State Management
 
 ##### `start() -> None`
-Start in IN_PROGRESS state. Starts spinner animation and timer.
+Start in IN_PROGRESS state. Starts spinner animation and timer. If called
+after `SUCCESS` or `ERROR`, performs a full child reset before restarting.
 
 ##### `success(message: str | None = None, duration: float | None = None) -> None`
 Transition to success state. Propagates to all children. Optional auto-clear after `duration` seconds.

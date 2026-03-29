@@ -464,6 +464,25 @@ class ThothSpinner:
         with self._lock:
             return self._state
 
+    def _reset_to_in_progress_locked(self) -> None:
+        """Reset children and orchestrator state.
+
+        Must be called with ``self._lock`` held.
+        """
+        if self._clear_timer:
+            self._clear_timer.cancel()
+            self._clear_timer = None
+
+        self._state = ComponentState.IN_PROGRESS
+        self._fade_start_time = None
+        self._fade_progress = None
+
+        for name in self._render_order:
+            component = self._components[name]
+            if hasattr(component, "reset"):
+                component.reset()
+            component.visible = self._component_visibility_defaults.get(name, True)
+
     def start(self) -> None:
         """Begin in in_progress state.
 
@@ -471,13 +490,17 @@ class ThothSpinner:
         all child components.
         """
         with self._lock:
-            self._state = ComponentState.IN_PROGRESS
-            self._start_time = time.time()
+            if self._state in (ComponentState.SUCCESS, ComponentState.ERROR):
+                self._reset_to_in_progress_locked()
+            else:
+                self._state = ComponentState.IN_PROGRESS
 
-            # Cancel any pending auto-clear
-            if self._clear_timer:
-                self._clear_timer.cancel()
-                self._clear_timer = None
+                # Cancel any pending auto-clear
+                if self._clear_timer:
+                    self._clear_timer.cancel()
+                    self._clear_timer = None
+
+            self._start_time = time.time()
 
             for name in self._render_order:
                 component = self._components[name]
@@ -549,19 +572,7 @@ class ThothSpinner:
         child components, and restores visibility.
         """
         with self._lock:
-            # Cancel any pending auto-clear timer
-            if self._clear_timer:
-                self._clear_timer.cancel()
-                self._clear_timer = None
-
-            self._state = ComponentState.IN_PROGRESS
-            self._fade_progress = None
-
-            for name in self._render_order:
-                component = self._components[name]
-                if hasattr(component, "reset"):
-                    component.reset()
-                component.visible = self._component_visibility_defaults.get(name, True)
+            self._reset_to_in_progress_locked()
 
     def clear(self) -> None:
         """Stop and clear display.
