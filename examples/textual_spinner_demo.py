@@ -14,11 +14,7 @@ STYLES = ["npm_dots", "claude_stars", "dots", "line", "arc", "circle"]
 class SpinnerDemo(App):
     """Demo application for SpinnerWidget."""
 
-    BINDINGS = [
-        ("tab", "focus_next", "Tab"),
-        ("shift+tab", "focus_previous", "Shift+Tab"),
-        ("ctrl+q", "quit", "Quit"),
-    ]
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -46,6 +42,12 @@ class SpinnerDemo(App):
         text-align: center;
         margin: 1 0;
     }
+
+    #nav-hint {
+        color: #888888;
+        text-align: center;
+        margin: 1 0 0 0;
+    }
     """
 
     def __init__(self):
@@ -65,6 +67,7 @@ class SpinnerDemo(App):
                 yield Button("Success", id="success")
                 yield Button("Error", id="error")
                 yield Button("Reset", id="reset")
+                yield Label("Tab / Shift+Tab to navigate", id="nav-hint")
 
         yield Footer()
 

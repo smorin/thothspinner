@@ -11,11 +11,7 @@ from thothspinner.textual.widgets import TimerWidget
 class TimerDemo(App):
     """Demo application for TimerWidget."""
 
-    BINDINGS = [
-        ("tab", "focus_next", "Tab"),
-        ("shift+tab", "focus_previous", "Shift+Tab"),
-        ("ctrl+q", "quit", "Quit"),
-    ]
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -43,6 +39,12 @@ class TimerDemo(App):
         text-align: center;
         margin: 1 0;
     }
+
+    #nav-hint {
+        color: #888888;
+        text-align: center;
+        margin: 1 0 0 0;
+    }
     """
 
     def compose(self) -> ComposeResult:
@@ -64,6 +66,7 @@ class TimerDemo(App):
                 yield Button("Pause / Resume All", id="pause")
                 yield Button("Reset All", id="reset")
                 yield Button("Success", id="success")
+                yield Label("Tab / Shift+Tab to navigate", id="nav-hint")
 
         yield Footer()
 

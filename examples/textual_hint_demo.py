@@ -11,11 +11,7 @@ from thothspinner.textual.widgets import HintWidget
 class HintDemo(App):
     """Demo application for HintWidget."""
 
-    BINDINGS = [
-        ("tab", "focus_next", "Tab"),
-        ("shift+tab", "focus_previous", "Shift+Tab"),
-        ("ctrl+q", "quit", "Quit"),
-    ]
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -42,6 +38,12 @@ class HintDemo(App):
     HintWidget {
         text-align: center;
         margin: 1 0;
+    }
+
+    #nav-hint {
+        color: #888888;
+        text-align: center;
+        margin: 1 0 0 0;
     }
     """
 
@@ -76,6 +78,7 @@ class HintDemo(App):
                 yield Button("Show Success", id="show-success")
                 yield Button("Show Error", id="show-error")
                 yield Button("Fade In/Out Demo", id="fade-demo")
+                yield Label("Tab / Shift+Tab to navigate", id="nav-hint")
 
         yield Footer()
 

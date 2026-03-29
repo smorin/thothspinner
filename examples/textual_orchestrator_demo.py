@@ -13,11 +13,7 @@ from thothspinner.textual import TextualThothSpinner
 class OrchestratorDemo(App):
     """Demo application for ThothSpinnerWidget orchestrator."""
 
-    BINDINGS = [
-        ("tab", "focus_next", "Tab"),
-        ("shift+tab", "focus_previous", "Shift+Tab"),
-        ("ctrl+q", "quit", "Quit"),
-    ]
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -45,6 +41,12 @@ class OrchestratorDemo(App):
         margin: 1 0;
         width: 100%;
     }
+
+    #nav-hint {
+        color: #888888;
+        text-align: center;
+        margin: 1 0 0 0;
+    }
     """
 
     def compose(self) -> ComposeResult:
@@ -68,6 +70,7 @@ class OrchestratorDemo(App):
                 yield Button("Toggle Shimmer Direction", id="shimmer-dir")
                 yield Button("Error Demo", id="error")
                 yield Button("Reset", id="reset")
+                yield Label("Tab / Shift+Tab to navigate", id="nav-hint")
 
         yield Footer()
 

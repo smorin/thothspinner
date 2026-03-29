@@ -11,11 +11,7 @@ from thothspinner.textual.widgets import HintWidget, ProgressWidget, SpinnerWidg
 class ReactiveDemo(App):
     """Demo showing reactive property updates and state CSS classes."""
 
-    BINDINGS = [
-        ("tab", "focus_next", "Tab"),
-        ("shift+tab", "focus_previous", "Shift+Tab"),
-        ("ctrl+q", "quit", "Quit"),
-    ]
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -47,6 +43,12 @@ class ReactiveDemo(App):
         height: 3;
         margin: 1 0;
     }
+
+    #nav-hint {
+        color: #888888;
+        text-align: center;
+        margin: 1 0 0 0;
+    }
     """
 
     def compose(self) -> ComposeResult:
@@ -71,6 +73,7 @@ class ReactiveDemo(App):
                 yield Button("Success All", id="success")
                 yield Button("Error All", id="error")
                 yield Button("Reset All", id="reset")
+                yield Label("Tab / Shift+Tab to navigate", id="nav-hint")
 
         yield Footer()
 

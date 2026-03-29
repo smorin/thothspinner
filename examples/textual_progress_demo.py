@@ -11,11 +11,7 @@ from thothspinner.textual.widgets import ProgressWidget
 class ProgressDemo(App):
     """Demo application for ProgressWidget."""
 
-    BINDINGS = [
-        ("tab", "focus_next", "Tab"),
-        ("shift+tab", "focus_previous", "Shift+Tab"),
-        ("ctrl+q", "quit", "Quit"),
-    ]
+    BINDINGS = [("ctrl+q", "quit", "Quit")]
 
     CSS = """
     Container {
@@ -37,6 +33,12 @@ class ProgressDemo(App):
     Button {
         width: 100%;
         margin: 0 0;
+    }
+
+    #nav-hint {
+        color: #888888;
+        text-align: center;
+        margin: 1 0 0 0;
     }
     """
 
@@ -63,6 +65,7 @@ class ProgressDemo(App):
                 yield Button("Increment All (+10)", id="increment")
                 yield Button("Reset All", id="reset")
                 yield Button("Success All", id="success")
+                yield Label("Tab / Shift+Tab to navigate", id="nav-hint")
 
         yield Footer()
 
