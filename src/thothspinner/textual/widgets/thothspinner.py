@@ -360,7 +360,9 @@ class ThothSpinnerWidget(Widget, can_focus=False):
 
     def _create_all_components(self) -> None:
         """Create all 5 child widgets from resolved configs."""
-        resolved_configs = {name: self._resolve_config(name) for name in self._render_order}
+        # Always resolve all 5 components — render_order only controls which are yielded
+        _all_names = ("spinner", "message", "progress", "timer", "hint")
+        resolved_configs = {name: self._resolve_config(name) for name in _all_names}
         self._component_display_defaults = {
             name: bool(config.get("visible", True)) for name, config in resolved_configs.items()
         }
