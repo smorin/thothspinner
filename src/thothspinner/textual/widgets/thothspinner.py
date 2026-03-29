@@ -17,7 +17,7 @@ from __future__ import annotations
 from typing import Any, ClassVar
 
 from textual.app import ComposeResult
-from textual.containers import Horizontal
+from textual.containers import Horizontal, Vertical
 from textual.reactive import reactive
 from textual.timer import Timer as TextualTimer
 from textual.widget import Widget
@@ -71,6 +71,40 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         width: auto;
         height: 1;
     }
+
+    ThothSpinnerWidget.-vertical {
+        height: auto;
+    }
+
+    ThothSpinnerWidget.-vertical Vertical {
+        height: auto;
+        width: 100%;
+    }
+
+    ThothSpinnerWidget.-vertical SpinnerWidget {
+        width: 100%;
+        margin: 0 0 1 0;
+    }
+
+    ThothSpinnerWidget.-vertical MessageWidget {
+        width: 100%;
+        margin: 0 0 1 0;
+    }
+
+    ThothSpinnerWidget.-vertical ProgressWidget {
+        width: 100%;
+        margin: 0 0 1 0;
+    }
+
+    ThothSpinnerWidget.-vertical TimerWidget {
+        width: 100%;
+        margin: 0 0 1 0;
+    }
+
+    ThothSpinnerWidget.-vertical HintWidget {
+        width: 100%;
+        margin: 0 0 1 0;
+    }
     """
 
     _state = reactive(ComponentState.IN_PROGRESS)
@@ -97,6 +131,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         error_duration: float | None = None,
         config: dict[str, Any] | None = None,
         render_order: list[str] | None = None,
+        layout: str = "horizontal",
         visible: bool = True,
         name: str | None = None,
         id: str | None = None,
@@ -104,10 +139,14 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         disabled: bool = False,
     ) -> None:
         """Initialize the ThothSpinnerWidget."""
+        self._layout_mode = layout
+        _cls_parts = [c for c in (classes or "").split() if c]
+        if layout == "vertical":
+            _cls_parts.insert(0, "-vertical")
         super().__init__(
             name=name,
             id=id,
-            classes=classes,
+            classes=" ".join(_cls_parts) if _cls_parts else None,
             disabled=disabled,
         )
 
@@ -266,8 +305,9 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         }
 
     def compose(self) -> ComposeResult:
-        """Yield child widgets in render order within a Horizontal container."""
-        with Horizontal():
+        """Yield child widgets in render order within a Horizontal or Vertical container."""
+        container = Vertical() if self._layout_mode == "vertical" else Horizontal()
+        with container:
             for name in self._render_order:
                 if name in self._components:
                     yield self._components[name]

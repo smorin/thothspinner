@@ -38,24 +38,8 @@ class OrchestratorDemo(App):
     }
 
     ThothSpinnerWidget {
-        height: auto;
         margin: 1 0;
         width: 100%;
-    }
-
-    ThothSpinnerWidget Horizontal {
-        height: auto;
-        layout: vertical;
-    }
-
-    ThothSpinnerWidget SpinnerWidget,
-    ThothSpinnerWidget MessageWidget,
-    ThothSpinnerWidget ProgressWidget,
-    ThothSpinnerWidget TimerWidget,
-    ThothSpinnerWidget HintWidget {
-        height: 1;
-        width: 100%;
-        margin: 0 0 1 0;
     }
 
     #nav-hint {
@@ -76,6 +60,7 @@ class OrchestratorDemo(App):
                     progress_format="percentage",
                     timer_format="auto",
                     hint_text="(press Start)",
+                    layout="vertical",
                     id="spinner",
                 )
 
@@ -121,17 +106,22 @@ class OrchestratorDemo(App):
             status.update("Status: reset")
 
     async def _simulate_progress(self) -> None:
+        from thothspinner.core.states import ComponentState
+
         spinner = self.query_one("#spinner", TextualThothSpinner)
         status = self.query_one("#status", Label)
 
         for i in range(101):
+            if spinner.state != ComponentState.IN_PROGRESS:
+                return
             spinner.update_progress(current=i, total=100)
             if i % 25 == 0 and i > 0:
                 spinner.set_message(text=f"Phase {i // 25} of 4")
             await asyncio.sleep(0.05)
 
-        spinner.success("Simulation complete!")
-        status.update("Status: SUCCESS")
+        if spinner.state == ComponentState.IN_PROGRESS:
+            spinner.success("Simulation complete!")
+            status.update("Status: SUCCESS")
 
 
 if __name__ == "__main__":
