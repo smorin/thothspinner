@@ -202,6 +202,10 @@ class TimerComponent(BaseComponent):
         text = Text(self._format_time(self.get_elapsed()))
         return Measurement.get(console, options, text)
 
+    def __str__(self) -> str:
+        """Return formatted time string for use in f-strings and str()."""
+        return self._format_time(self.get_elapsed())
+
     # State management
     def success(self) -> None:
         """Transition to success state."""
