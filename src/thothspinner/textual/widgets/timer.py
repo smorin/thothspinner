@@ -95,6 +95,8 @@ class TimerWidget(Static):
         self._precision = precision
         self._success_text = success_text
         self._error_text = error_text
+        self._success_color: str | None = None
+        self._error_color: str | None = None
         self.color = validate_hex_color(color)
 
         # Timer tracking state
@@ -303,10 +305,10 @@ class TimerWidget(Static):
         """Render the timer widget."""
         if self._state == ComponentState.SUCCESS:
             display = self._success_text or self._format_time(self._elapsed)
-            return Text(display)
+            return Text(display, style=self._success_color)
         elif self._state == ComponentState.ERROR:
             display = self._error_text or self._format_time(self._elapsed)
-            return Text(display)
+            return Text(display, style=self._error_color)
         else:
             return Text(self._format_time(self.get_elapsed()), style=self.color)
 
@@ -361,6 +363,16 @@ class TimerWidget(Static):
         if text is not None:
             self._error_text = text
         self._state = ComponentState.ERROR
+
+    def configure_state(self, state: ComponentState, *, color: str | None = None) -> None:
+        """Update terminal-state color overrides."""
+        if color is not None:
+            color = validate_hex_color(color)
+        if state == ComponentState.SUCCESS:
+            self._success_color = color
+        elif state == ComponentState.ERROR:
+            self._error_color = color
+        self.refresh()
 
     # --- Visibility methods ---
 

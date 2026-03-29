@@ -108,6 +108,8 @@ class ProgressWidget(Static):
         self._zero_pad = zero_pad
         self._success_text = success_text
         self._error_text = error_text
+        self._success_color: str | None = None
+        self._error_color: str | None = None
         # Bar config
         self._bar_width = bar_width
         self._bar_filled = bar_filled
@@ -184,9 +186,9 @@ class ProgressWidget(Static):
     def render(self) -> Text:
         """Render the progress widget."""
         if self._state == ComponentState.SUCCESS:
-            return Text(self._success_text)
+            return Text(self._success_text, style=self._success_color)
         elif self._state == ComponentState.ERROR:
-            return Text(self._error_text)
+            return Text(self._error_text, style=self._error_color)
         else:
             return Text(self._format_progress(), style=self.color)
 
@@ -360,6 +362,21 @@ class ProgressWidget(Static):
         self._display_current = 0.0
         self.current = 0
         self._state = ComponentState.IN_PROGRESS
+
+    def configure_state(
+        self,
+        state: ComponentState,
+        *,
+        color: str | None = None,
+    ) -> None:
+        """Update terminal-state color overrides."""
+        if color is not None:
+            color = validate_hex_color(color)
+        if state == ComponentState.SUCCESS:
+            self._success_color = color
+        elif state == ComponentState.ERROR:
+            self._error_color = color
+        self.refresh()
 
     # ── Visibility methods ────────────────────────────────────────────────────
 

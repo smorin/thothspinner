@@ -99,6 +99,8 @@ class SpinnerWidget(Static):
         self.color = validate_hex_color(color)
         self._success_icon = success_icon
         self._error_icon = error_icon
+        self._success_color: str | None = None
+        self._error_color: str | None = None
         self._speed = speed
         self._paused = False
         self._timer: Timer | None = None
@@ -164,9 +166,9 @@ class SpinnerWidget(Static):
     def render(self) -> Text:
         """Render the spinner widget."""
         if self._state == ComponentState.SUCCESS:
-            return Text(self._success_icon)
+            return Text(self._success_icon, style=self._success_color)
         elif self._state == ComponentState.ERROR:
-            return Text(self._error_icon)
+            return Text(self._error_icon, style=self._error_color)
         else:
             frame = self._frames[self._frame_index]
             return Text(frame, style=self.color)
@@ -228,6 +230,29 @@ class SpinnerWidget(Static):
     def reset(self) -> None:
         """Reset to in_progress state."""
         self.start()
+
+    def configure_state(
+        self,
+        state: ComponentState,
+        *,
+        icon: str | None = None,
+        color: str | None = None,
+    ) -> None:
+        """Update terminal-state icon or color overrides."""
+        if color is not None:
+            color = validate_hex_color(color)
+
+        if state == ComponentState.SUCCESS:
+            if icon is not None:
+                self._success_icon = icon
+            if color is not None:
+                self._success_color = color
+        elif state == ComponentState.ERROR:
+            if icon is not None:
+                self._error_icon = icon
+            if color is not None:
+                self._error_color = color
+        self.refresh()
 
     def stop(self) -> None:
         """Stop the animation without changing state.

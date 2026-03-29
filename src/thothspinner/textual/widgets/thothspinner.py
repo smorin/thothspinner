@@ -216,6 +216,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
                 "visible": True,
             },
             "elements": {},
+            "states": {},
         }
 
         # Merge user config dict first
@@ -226,6 +227,8 @@ class ThothSpinnerWidget(Widget, can_focus=False):
                 result["elements"].update(config_dict["elements"])
             if "render_order" in config_dict:
                 result["render_order"] = config_dict["render_order"]
+            if "states" in config_dict:
+                result["states"].update(config_dict["states"])
             if "durations" in config_dict:
                 durations = config_dict["durations"]
                 if "success" in durations and durations["success"] is not None:
@@ -278,7 +281,26 @@ class ThothSpinnerWidget(Widget, can_focus=False):
                 f"Valid types: {list(self.VALID_COMPONENTS)}"
             )
 
-    def _resolve_config(self, component_type: str) -> dict[str, Any]:
+    def _get_state_settings(self, state: ComponentState) -> dict[str, Any]:
+        """Resolve top-level settings for a terminal state."""
+        state_name = state.name.lower()
+        settings: dict[str, Any] = {}
+
+        for source in (
+            self.config.get("defaults", {}).get(state_name, {}),
+            self.config.get("states", {}).get(state_name, {}),
+        ):
+            if not isinstance(source, dict):
+                continue
+            for key, value in source.items():
+                if key not in self.VALID_COMPONENTS:
+                    settings[key] = value
+
+        return settings
+
+    def _resolve_config(
+        self, component_type: str, state: ComponentState | None = None
+    ) -> dict[str, Any]:
         """Resolve configuration for a component with inheritance.
 
         Config hierarchy: defaults -> element-specific overrides.
@@ -291,18 +313,49 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         """
         config: dict[str, Any] = {}
 
-        # Apply defaults (only color and visible)
         defaults = self.config.get("defaults", {})
         if "color" in defaults:
             config["color"] = defaults["color"]
         if "visible" in defaults:
             config["visible"] = defaults["visible"]
 
+        if state is not None:
+            config.update(
+                {
+                    key: value
+                    for key, value in self._get_state_settings(state).items()
+                    if key not in {"behavior", "duration", "message"}
+                }
+            )
+            state_name = state.name.lower()
+            state_config = self.config.get("states", {}).get(state_name, {})
+            if component_type in state_config:
+                config.update(state_config[component_type])
+
         # Apply element-specific config (overrides defaults)
         element_config = self.config.get("elements", {}).get(component_type, {})
         config.update(element_config)
 
         return config
+
+    def _get_state_component_overrides(
+        self, component_type: str, state: ComponentState
+    ) -> dict[str, Any]:
+        """Resolve component overrides defined directly under ``states.<state>``."""
+        state_name = state.name.lower()
+        overrides: dict[str, Any] = {}
+
+        for source in (
+            self.config.get("defaults", {}).get(state_name, {}),
+            self.config.get("states", {}).get(state_name, {}),
+        ):
+            if not isinstance(source, dict):
+                continue
+            component_overrides = source.get(component_type)
+            if isinstance(component_overrides, dict):
+                overrides.update(component_overrides)
+
+        return overrides
 
     def _create_all_components(self) -> None:
         """Create all 5 child widgets from resolved configs."""
@@ -425,7 +478,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         self._state = ComponentState.SUCCESS
         self._propagate_state(ComponentState.SUCCESS, message)
 
-        clear_duration = duration or self.success_duration
+        clear_duration = self._get_clear_duration(ComponentState.SUCCESS, duration)
         if clear_duration is not None:
             self._schedule_clear(clear_duration)
 
@@ -442,7 +495,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         self._state = ComponentState.ERROR
         self._propagate_state(ComponentState.ERROR, message)
 
-        clear_duration = duration or self.error_duration
+        clear_duration = self._get_clear_duration(ComponentState.ERROR, duration)
         if clear_duration is not None:
             self._schedule_clear(clear_duration)
 
@@ -479,15 +532,96 @@ class ThothSpinnerWidget(Widget, can_focus=False):
             message: Optional message to pass to child state methods.
         """
         state_method = state.name.lower()  # "success" or "error"
+        state_settings = self._get_state_settings(state)
+        behavior = state_settings.get("behavior", "indicator")
 
         for name in self._render_order:
             component = self._components.get(name)
             if component is None:
                 continue
 
+            component_config = self._resolve_config(name, state)
+            state_component_overrides = self._get_state_component_overrides(name, state)
+            terminal_text = self._resolve_terminal_text(
+                state_component_overrides, state_settings, message
+            )
+            self._apply_terminal_overrides(
+                name,
+                component,
+                state,
+                component_config,
+                state_component_overrides,
+            )
+
+            if behavior == "disappear":
+                component.display = False
+                continue
+
             method = getattr(component, state_method, None)
             if method is not None:
-                method(message)
+                if terminal_text is None:
+                    method()
+                else:
+                    try:
+                        method(terminal_text)
+                    except TypeError:
+                        method()
+
+    def _get_clear_duration(self, state: ComponentState, override: float | None) -> float | None:
+        """Resolve auto-clear duration with state config precedence."""
+        if override is not None:
+            return override
+
+        state_settings = self._get_state_settings(state)
+        configured_duration = state_settings.get("duration")
+        if configured_duration is not None:
+            return configured_duration
+
+        state_name = state.name.lower()
+        if state == ComponentState.SUCCESS and self.success_duration is not None:
+            return self.success_duration
+        if state == ComponentState.ERROR and self.error_duration is not None:
+            return self.error_duration
+
+        return self.config.get("durations", {}).get(state_name)
+
+    def _resolve_terminal_text(
+        self,
+        state_component_overrides: dict[str, Any],
+        state_settings: dict[str, Any],
+        message: str | None,
+    ) -> str | None:
+        """Resolve terminal text with explicit method message precedence."""
+        if message is not None:
+            return message
+        if "text" in state_component_overrides:
+            return state_component_overrides["text"]
+        state_message = state_settings.get("message")
+        return state_message if isinstance(state_message, str) else None
+
+    def _apply_terminal_overrides(
+        self,
+        name: str,
+        component: Widget,
+        state: ComponentState,
+        component_config: dict[str, Any],
+        state_component_overrides: dict[str, Any],
+    ) -> None:
+        """Apply state-specific icon or color overrides to a child widget."""
+        kwargs: dict[str, Any] = {}
+
+        color = state_component_overrides.get("color", component_config.get("color"))
+        if color is not None:
+            kwargs["color"] = color
+
+        if name == "spinner":
+            icon_key = "success_icon" if state == ComponentState.SUCCESS else "error_icon"
+            icon = state_component_overrides.get("icon", state_component_overrides.get(icon_key))
+            if icon is not None:
+                kwargs["icon"] = icon
+
+        if kwargs and hasattr(component, "configure_state"):
+            component.configure_state(state, **kwargs)  # type: ignore[union-attr]
 
     # --- Auto-clear timer ---
 

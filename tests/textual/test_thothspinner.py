@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+from unittest.mock import patch
 
 import pytest
 from textual.app import App, ComposeResult
@@ -116,6 +117,39 @@ class TestConfigHierarchy:
         """Constructor kwargs applied to element configs."""
         widget = ThothSpinnerWidget(hint_text="Custom")
         assert widget.hint.text == "Custom"
+
+    def test_state_overrides_are_applied_on_success(self):
+        """State config should drive terminal icon, text, and colors."""
+        widget = ThothSpinnerWidget(
+            config={
+                "states": {
+                    "success": {
+                        "spinner": {"icon": "🎉", "color": "#12AB34"},
+                        "message": {"text": "Ship it", "color": "#3456AB"},
+                    }
+                }
+            }
+        )
+
+        widget.success()
+
+        rendered_spinner = widget.spinner.render()
+        rendered_message = widget.message.render()
+
+        assert rendered_spinner.plain == "🎉"
+        assert "#12ab34" in str(rendered_spinner.style).lower()
+        assert rendered_message.plain == "Ship it"
+        assert "#3456ab" in str(rendered_message.style).lower()
+
+    def test_explicit_message_overrides_state_message_text(self):
+        """A method message should beat configured state text for that transition."""
+        widget = ThothSpinnerWidget(
+            config={"states": {"success": {"message": {"text": "Configured"}}}}
+        )
+
+        widget.success("Explicit")
+
+        assert widget.message.render().plain == "Explicit"
 
 
 class TestRenderOrder:
@@ -289,6 +323,36 @@ class TestStateManagement:
         widget.reset()
         widget.start()
         assert widget.state == ComponentState.IN_PROGRESS
+
+    def test_state_behavior_disappear_hides_components(self):
+        """State-level behavior should control terminal visibility."""
+        widget = ThothSpinnerWidget(config={"states": {"success": {"behavior": "disappear"}}})
+
+        widget.success()
+
+        for component in widget._components.values():
+            assert component.display is False
+
+    def test_state_duration_override(self):
+        """State-level duration config overrides the default success duration."""
+        widget = ThothSpinnerWidget(
+            success_duration=2.0,
+            config={"states": {"success": {"duration": 4.0}}},
+        )
+
+        with patch.object(widget, "_schedule_clear") as mock_schedule:
+            widget.success()
+
+        mock_schedule.assert_called_once_with(4.0)
+
+    def test_method_duration_beats_state_duration(self):
+        """Explicit method duration overrides configured state duration."""
+        widget = ThothSpinnerWidget(config={"states": {"success": {"duration": 4.0}}})
+
+        with patch.object(widget, "_schedule_clear") as mock_schedule:
+            widget.success(duration=1.5)
+
+        mock_schedule.assert_called_once_with(1.5)
 
 
 class TestConvenienceMethods:

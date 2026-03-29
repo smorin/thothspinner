@@ -177,7 +177,7 @@ class TimerComponent(BaseComponent):
         from rich.style import Style
 
         style = Style(color=config.color) if config.color else self._style
-        text = self._format_time(elapsed)
+        text = config.text if config.text is not None else self._format_time(elapsed)
         yield Segment(text, style)
 
     def __rich__(self) -> Text:
@@ -193,7 +193,8 @@ class TimerComponent(BaseComponent):
         from rich.style import Style
 
         style = Style(color=config.color) if config.color else self._style
-        return Text(self._format_time(elapsed), style=style)
+        text = config.text if config.text is not None else self._format_time(elapsed)
+        return Text(text, style=style)
 
     def __rich_measure__(self, console: Console, options: ConsoleOptions) -> Measurement:
         """Measure the timer component width for layout."""
@@ -207,19 +208,38 @@ class TimerComponent(BaseComponent):
         return self._format_time(self.get_elapsed())
 
     # State management
-    def success(self) -> None:
+    def success(self, text: str | None = None) -> None:
         """Transition to success state."""
         if not self._state.can_transition_to(ComponentState.SUCCESS):
             return
         self.stop()
+        if text is not None:
+            self._state_configs[ComponentState.SUCCESS].text = text
         self._state = ComponentState.SUCCESS
 
-    def error(self) -> None:
+    def error(self, text: str | None = None) -> None:
         """Transition to error state."""
         if not self._state.can_transition_to(ComponentState.ERROR):
             return
         self.stop()
+        if text is not None:
+            self._state_configs[ComponentState.ERROR].text = text
         self._state = ComponentState.ERROR
+
+    def configure_state(
+        self,
+        state: ComponentState,
+        *,
+        text: str | None = None,
+        color: str | None = None,
+    ) -> None:
+        """Update terminal-state text or color overrides."""
+        if state not in self._state_configs:
+            return
+        if text is not None:
+            self._state_configs[state].text = text
+        if color is not None:
+            self._state_configs[state].color = color
 
     def is_running(self) -> bool:
         """Check if the timer is currently running."""

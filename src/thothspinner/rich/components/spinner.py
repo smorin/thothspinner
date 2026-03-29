@@ -106,6 +106,8 @@ class SpinnerComponent:
         # Internal state management
         self._state = ComponentState.IN_PROGRESS
         self._start_time: float | None = None
+        self._success_color = COLOR_SUCCESS
+        self._error_color = COLOR_ERROR
 
     @property
     def state(self) -> ComponentState:
@@ -157,6 +159,28 @@ class SpinnerComponent:
         """
         self._state = ComponentState.IN_PROGRESS
         self._start_time = None
+
+    def configure_state(
+        self,
+        state: ComponentState,
+        *,
+        icon: str | None = None,
+        color: str | None = None,
+    ) -> None:
+        """Update terminal-state icon or color overrides."""
+        if color is not None:
+            validate_hex_color(color)
+
+        if state == ComponentState.SUCCESS:
+            if icon is not None:
+                self.success_icon = icon
+            if color is not None:
+                self._success_color = color
+        elif state == ComponentState.ERROR:
+            if icon is not None:
+                self.error_icon = icon
+            if color is not None:
+                self._error_color = color
 
     def _calculate_frame(self, current_time: float) -> int:
         """Calculate current frame index based on time.
@@ -238,12 +262,10 @@ class SpinnerComponent:
         current_time = console.get_time() if hasattr(console, "get_time") else time.time()
 
         if self._state == ComponentState.SUCCESS:
-            # Display success icon in green
-            style = Style(color=COLOR_SUCCESS)
+            style = Style(color=self._success_color)
             yield Text(self.success_icon, style=style)
         elif self._state == ComponentState.ERROR:
-            # Display error icon in red
-            style = Style(color=COLOR_ERROR)
+            style = Style(color=self._error_color)
             yield Text(self.error_icon, style=style)
         else:
             # Animate spinner using time-based calculation

@@ -264,6 +264,27 @@ class TestStateManagement:
 
         mock_timer.assert_called_once_with(5.0, spinner.clear)
 
+    @patch("threading.Timer")
+    def test_state_duration_override(self, mock_timer):
+        """State-level duration config overrides the default success duration."""
+        spinner = ThothSpinner(
+            success_duration=2.0,
+            states={"success": {"duration": 4.0}},
+        )
+
+        spinner.success()
+
+        mock_timer.assert_called_once_with(4.0, spinner.clear)
+
+    @patch("threading.Timer")
+    def test_method_duration_beats_state_duration(self, mock_timer):
+        """Explicit method duration overrides configured state duration."""
+        spinner = ThothSpinner(states={"success": {"duration": 4.0}})
+
+        spinner.success(duration=1.5)
+
+        mock_timer.assert_called_once_with(1.5, spinner.clear)
+
 
 class TestComponentControl:
     """Test component control methods."""
@@ -486,6 +507,53 @@ class TestConfiguration:
         # Component-specific should win
         resolved = spinner._resolve_config("spinner")
         assert resolved["color"] == "#FF0000"
+
+    def test_state_overrides_are_applied_on_success(self):
+        """State config should drive terminal icon, text, and colors."""
+        spinner = ThothSpinner(
+            states={
+                "success": {
+                    "spinner": {"icon": "🎉", "color": "#12AB34"},
+                    "message": {"text": "Ship it", "color": "#3456AB"},
+                }
+            }
+        )
+
+        spinner.success()
+
+        console = Console(file=StringIO(), force_terminal=True, width=80)
+        options = console.options
+
+        rendered_spinner = next(spinner.get_component("spinner").__rich_console__(console, options))
+        rendered_message = next(spinner.get_component("message").__rich_console__(console, options))
+
+        assert rendered_spinner.plain == "🎉"
+        assert rendered_spinner.style.color is not None
+        assert "#12ab34" in str(rendered_spinner.style.color).lower()
+        assert rendered_message.plain == "Ship it"
+        assert rendered_message.style.color is not None
+        assert "#3456ab" in str(rendered_message.style.color).lower()
+
+    def test_explicit_message_overrides_state_message_text(self):
+        """A method message should beat configured state text for that transition."""
+        spinner = ThothSpinner(states={"success": {"message": {"text": "Configured"}}})
+
+        spinner.success("Explicit")
+
+        console = Console(file=StringIO(), force_terminal=True, width=80)
+        options = console.options
+        rendered_message = next(spinner.get_component("message").__rich_console__(console, options))
+
+        assert rendered_message.plain == "Explicit"
+
+    def test_state_behavior_disappear_hides_components(self):
+        """State-level behavior should control terminal visibility."""
+        spinner = ThothSpinner(states={"success": {"behavior": "disappear"}})
+
+        spinner.success()
+
+        for component in spinner._components.values():
+            assert component.visible is False
 
     def test_component_visibility_override_applied_on_creation(self):
         """Test component visibility overrides global defaults on initialization."""

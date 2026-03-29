@@ -188,6 +188,23 @@ class ThothSpinner:
 
         return result
 
+    def _get_state_settings(self, state: ComponentState) -> dict[str, Any]:
+        """Resolve top-level settings for a terminal state."""
+        state_name = state.name.lower()
+        settings: dict[str, Any] = {}
+
+        for source in (
+            self.config.get("defaults", {}).get(state_name, {}),
+            self.config.get("states", {}).get(state_name, {}),
+        ):
+            if not isinstance(source, dict):
+                continue
+            for key, value in source.items():
+                if key not in self._render_order:
+                    settings[key] = value
+
+        return settings
+
     def _resolve_config(
         self, component_type: str, state: ComponentState | None = None
     ) -> dict[str, Any]:
@@ -198,10 +215,21 @@ class ThothSpinner:
         if component_type not in self._render_order:
             raise KeyError(f"Invalid component type: {component_type}")
 
-        config = self.config["defaults"].copy()
+        config = {
+            key: value
+            for key, value in self.config.get("defaults", {}).items()
+            if key not in {"success", "error"}
+        }
 
         # Apply state-specific config if provided
         if state:
+            config.update(
+                {
+                    key: value
+                    for key, value in self._get_state_settings(state).items()
+                    if key not in {"behavior", "duration", "message"}
+                }
+            )
             state_name = state.name.lower()
             if state_name in self.config.get("states", {}):
                 state_config = self.config["states"][state_name]
@@ -213,6 +241,25 @@ class ThothSpinner:
             config.update(self.config["elements"][component_type])
 
         return config
+
+    def _get_state_component_overrides(
+        self, component_type: str, state: ComponentState
+    ) -> dict[str, Any]:
+        """Resolve component overrides defined directly under ``states.<state>``."""
+        state_name = state.name.lower()
+        overrides: dict[str, Any] = {}
+
+        for source in (
+            self.config.get("defaults", {}).get(state_name, {}),
+            self.config.get("states", {}).get(state_name, {}),
+        ):
+            if not isinstance(source, dict):
+                continue
+            component_overrides = source.get(component_type)
+            if isinstance(component_overrides, dict):
+                overrides.update(component_overrides)
+
+        return overrides
 
     def _validate_config(self, config: dict[str, Any]) -> dict[str, Any]:
         """Validate and normalize configuration.
@@ -458,8 +505,8 @@ class ThothSpinner:
             self._propagate_state(ComponentState.SUCCESS, message)
 
             # Handle auto-clear with threading.Timer
-            clear_duration = duration or self.success_duration
-            if clear_duration:
+            clear_duration = self._get_clear_duration(ComponentState.SUCCESS, duration)
+            if clear_duration is not None:
                 if self._clear_timer:
                     self._clear_timer.cancel()
                 self._clear_timer = threading.Timer(clear_duration, self.clear)
@@ -487,8 +534,8 @@ class ThothSpinner:
             self._propagate_state(ComponentState.ERROR, message)
 
             # Handle auto-clear with threading.Timer
-            clear_duration = duration or self.error_duration
-            if clear_duration:
+            clear_duration = self._get_clear_duration(ComponentState.ERROR, duration)
+            if clear_duration is not None:
                 if self._clear_timer:
                     self._clear_timer.cancel()
                 self._clear_timer = threading.Timer(clear_duration, self.clear)
@@ -543,26 +590,26 @@ class ThothSpinner:
         Must be called with lock held.
         """
 
-        def invoke_state_method(component: Any, method_name: str) -> None:
+        def invoke_state_method(
+            component: Any, method_name: str, terminal_text: str | None
+        ) -> None:
             """Invoke a terminal-state method, preserving component defaults."""
             if not hasattr(component, method_name):
                 return
 
             method = getattr(component, method_name)
-            if message is None:
+            if terminal_text is None:
                 method()
                 return
 
             try:
-                method(message)
+                method(terminal_text)
             except TypeError:
                 method()
 
         state_name = state.name.lower()
-
-        # Get global state config
-        global_state_config = self.config.get("defaults", {}).get(state_name, {})
-        behavior = global_state_config.get("behavior", "indicator")
+        state_settings = self._get_state_settings(state)
+        behavior = state_settings.get("behavior", "indicator")
 
         # Check for fade-away
         fade_config = self.config.get("fade_away", {})
@@ -575,25 +622,87 @@ class ThothSpinner:
         for name in self._render_order:
             component = self._components[name]
             component_config = self._resolve_config(name, state)
+            state_component_overrides = self._get_state_component_overrides(name, state)
+            terminal_text = self._resolve_terminal_text(
+                state_component_overrides, state_settings, message
+            )
+            self._apply_terminal_overrides(
+                name,
+                component,
+                state,
+                component_config,
+                state_component_overrides,
+                terminal_text,
+            )
 
             # Apply state-specific configuration
             if behavior == "disappear":
                 component.visible = False
-            elif behavior == "indicator":
-                # Call component's state method if it exists
-                invoke_state_method(component, state_name)
-            elif behavior == "message":
-                if hasattr(component, "set_text"):
-                    component.set_text(message or global_state_config.get("message"))
-            elif behavior == "both":
-                # Both indicator and message
-                invoke_state_method(component, state_name)
-                if hasattr(component, "set_text"):
-                    component.set_text(message or global_state_config.get("message"))
+            else:
+                invoke_state_method(component, state_name, terminal_text)
 
-            # Apply color changes from state config
-            if "color" in component_config and hasattr(component, "color"):
-                component.color = component_config["color"]
+    def _get_clear_duration(self, state: ComponentState, override: float | None) -> float | None:
+        """Resolve auto-clear duration with state config precedence."""
+        if override is not None:
+            return override
+
+        state_settings = self._get_state_settings(state)
+        configured_duration = state_settings.get("duration")
+        if configured_duration is not None:
+            return configured_duration
+
+        state_name = state.name.lower()
+        if state == ComponentState.SUCCESS and self.success_duration is not None:
+            return self.success_duration
+        if state == ComponentState.ERROR and self.error_duration is not None:
+            return self.error_duration
+
+        return self.config.get("durations", {}).get(state_name)
+
+    def _resolve_terminal_text(
+        self,
+        state_component_overrides: dict[str, Any],
+        state_settings: dict[str, Any],
+        message: str | None,
+    ) -> str | None:
+        """Resolve terminal text with explicit method message precedence."""
+        if message is not None:
+            return message
+        if "text" in state_component_overrides:
+            return state_component_overrides["text"]
+        state_message = state_settings.get("message")
+        return state_message if isinstance(state_message, str) else None
+
+    def _apply_terminal_overrides(
+        self,
+        name: str,
+        component: Any,
+        state: ComponentState,
+        component_config: dict[str, Any],
+        state_component_overrides: dict[str, Any],
+        terminal_text: str | None,
+    ) -> None:
+        """Apply state-specific icon/text/color overrides to a component."""
+        color = state_component_overrides.get("color", component_config.get("color"))
+        icon = None
+        if name == "spinner":
+            icon_key = "success_icon" if state == ComponentState.SUCCESS else "error_icon"
+            icon = state_component_overrides.get("icon", state_component_overrides.get(icon_key))
+
+        if hasattr(component, "configure_state"):
+            kwargs: dict[str, Any] = {}
+            if color is not None:
+                kwargs["color"] = color
+            if terminal_text is not None and name in {"progress", "timer"}:
+                kwargs["text"] = terminal_text
+            if icon is not None:
+                kwargs["icon"] = icon
+            if kwargs:
+                component.configure_state(state, **kwargs)
+            return
+
+        if color is not None and hasattr(component, "color"):
+            component.color = color
 
     # Fade-Away Animation
 

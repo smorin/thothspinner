@@ -163,6 +163,21 @@ class ProgressComponent(BaseComponent):
         self._state = ComponentState.IN_PROGRESS
         self.current = 0
 
+    def configure_state(
+        self,
+        state: ComponentState,
+        *,
+        text: str | None = None,
+        color: str | None = None,
+    ) -> None:
+        """Update terminal-state text or color overrides."""
+        if state not in self._state_configs:
+            return
+        if text is not None:
+            self._state_configs[state].text = text
+        if color is not None:
+            self._state_configs[state].color = color
+
     def is_complete(self) -> bool:
         """Check if progress has reached or exceeded total."""
         return self.current >= self.total

@@ -73,6 +73,8 @@ class HintWidget(Static):
         self.text = text
         self.color = validate_hex_color(color)
         self.icon = icon
+        self._success_color: str | None = None
+        self._error_color: str | None = None
         if not visible:
             self.display = False
 
@@ -87,6 +89,10 @@ class HintWidget(Static):
         Note: Visibility is handled by the display property.
         """
         content = self._build_content()
+        if self._state == ComponentState.SUCCESS and self._success_color is not None:
+            return Text(content, style=self._success_color)
+        if self._state == ComponentState.ERROR and self._error_color is not None:
+            return Text(content, style=self._error_color)
         return Text(content, style=self.color)
 
     def _build_content(self) -> str:
@@ -185,6 +191,16 @@ class HintWidget(Static):
         """Reset to in_progress state and show the widget."""
         self.display = True
         self._state = ComponentState.IN_PROGRESS
+
+    def configure_state(self, state: ComponentState, *, color: str | None = None) -> None:
+        """Update terminal-state color overrides."""
+        if color is not None:
+            color = validate_hex_color(color)
+        if state == ComponentState.SUCCESS:
+            self._success_color = color
+        elif state == ComponentState.ERROR:
+            self._error_color = color
+        self.refresh()
 
     @classmethod
     def from_config(cls, config: dict) -> HintWidget:

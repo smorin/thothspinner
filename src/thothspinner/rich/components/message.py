@@ -241,6 +241,8 @@ class MessageComponent:
         self._shimmer_start_time: float | None = None
         self._used_words: list[str] = []  # Track recent words to avoid repeats
         self._cached_terminal_render: tuple[tuple, Text] | None = None
+        self._success_color = COLOR_SUCCESS
+        self._error_color = COLOR_ERROR
 
     @property
     def state(self) -> ComponentState:
@@ -350,6 +352,17 @@ class MessageComponent:
         self._used_words.clear()
         self._cached_terminal_render = None
 
+    def configure_state(self, state: ComponentState, *, color: str | None = None) -> None:
+        """Update terminal-state color overrides."""
+        if color is None:
+            return
+        validate_hex_color(color)
+        if state == ComponentState.SUCCESS:
+            self._success_color = color
+        elif state == ComponentState.ERROR:
+            self._error_color = color
+        self._cached_terminal_render = None
+
     def _select_new_word(self) -> None:
         """Select a new random word from the pool."""
         if not self._action_words:
@@ -435,11 +448,9 @@ class MessageComponent:
             Rich Text object to render
         """
         if self._state == ComponentState.SUCCESS:
-            # Success state - static text with success color
-            return Text(self._static_text, style=Style(color=COLOR_SUCCESS))
+            return Text(self._static_text, style=Style(color=self._success_color))
         elif self._state == ComponentState.ERROR:
-            # Error state - static text with error color
-            return Text(self._static_text, style=Style(color=COLOR_ERROR))
+            return Text(self._static_text, style=Style(color=self._error_color))
         else:
             # In progress state - rotating words with optional shimmer
             # Check if word needs to change
@@ -473,7 +484,12 @@ class MessageComponent:
 
         # Cache terminal states for performance
         if self._state in (ComponentState.SUCCESS, ComponentState.ERROR):
-            cache_key = (self._state, self._static_text)
+            cache_key = (
+                self._state,
+                self._static_text,
+                self._success_color,
+                self._error_color,
+            )
             if self._cached_terminal_render and self._cached_terminal_render[0] == cache_key:
                 yield self._cached_terminal_render[1]
                 return
