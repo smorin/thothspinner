@@ -122,6 +122,10 @@ Animated spinner with customizable frame sequences and styles.
 - `moon`: Lunar phases (`🌑🌒🌓🌔🌕🌖🌗🌘`)
 - `clock`: Clock face cycling through hours (`🕛🕐🕑…🕚`)
 - `earth`: Globe rotating (`🌍🌎🌏`)
+- `dice`: Rolling die faces (`⚀⚁⚂⚃⚄⚅`)
+- `snowflake`: Crystal forming and dissolving (`·∗✦❄✦∗·`)
+- `zodiac`: Cycling through the 12 zodiac signs (`♈♉♊…♓`)
+- `rune`: Elder Futhark letters cycling (`ᚠᚢᚦᚨᚱᚲ…`)
 
 #### Usage
 

@@ -112,6 +112,22 @@ SPINNER_FRAMES: dict[str, SpinnerDefinition] = {
         "frames": ["🌍", "🌎", "🌏"],
         "interval": 0.18,
     },
+    "dice": {
+        "frames": ["⚀", "⚁", "⚂", "⚃", "⚄", "⚅"],
+        "interval": 0.15,
+    },
+    "snowflake": {
+        "frames": ["·", "∗", "✦", "❄", "✦", "∗", "·"],
+        "interval": 0.12,
+    },
+    "zodiac": {
+        "frames": ["♈", "♉", "♊", "♋", "♌", "♍", "♎", "♏", "♐", "♑", "♒", "♓"],
+        "interval": 0.1,
+    },
+    "rune": {
+        "frames": ["ᚠ", "ᚢ", "ᚦ", "ᚨ", "ᚱ", "ᚲ", "ᚷ", "ᚹ", "ᚺ", "ᚾ", "ᛁ", "ᛃ"],
+        "interval": 0.12,
+    },
 }
 
 
