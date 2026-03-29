@@ -616,6 +616,8 @@ class ThothSpinner:
         if direction == "left-to-right":
             return components[faded_count:] if faded_count < len(components) else []
         else:  # right-to-left
+            if faded_count == 0:
+                return components
             return components[:-faded_count] if faded_count < len(components) else []
 
     # Component Control Methods (Hybrid Approach)

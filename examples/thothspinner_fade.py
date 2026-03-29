@@ -17,7 +17,7 @@ def demo_left_to_right_fade():
         "fade_away": {
             "enabled": True,
             "direction": "left-to-right",
-            "interval": 0.1,  # 100ms between each element
+            "interval": 0.3,  # 300ms between each element
         }
     }
 
@@ -30,16 +30,16 @@ def demo_left_to_right_fade():
 
         for i in range(101):
             spinner.update_progress(current=i, total=100)
-            time.sleep(0.01)
+            time.sleep(0.05)
 
         # Success triggers fade-away
         spinner.success("Fading out left to right...")
-        time.sleep(2)  # Watch the fade animation
+        time.sleep(3)  # Watch the fade animation
 
 
 def demo_right_to_left_fade():
     """Demonstrate right-to-left fade animation."""
-    config = {"fade_away": {"enabled": True, "direction": "right-to-left", "interval": 0.1}}
+    config = {"fade_away": {"enabled": True, "direction": "right-to-left", "interval": 0.3}}
 
     spinner = ThothSpinner(message_text="Right to left fade", **config)
 
@@ -50,11 +50,11 @@ def demo_right_to_left_fade():
 
         for i in range(101):
             spinner.update_progress(current=i, total=100)
-            time.sleep(0.01)
+            time.sleep(0.05)
 
         # Error also triggers fade-away
         spinner.error("Fading out right to left...")
-        time.sleep(2)
+        time.sleep(3)
 
 
 def demo_instant_disappear():
@@ -74,11 +74,11 @@ def demo_instant_disappear():
 
         for i in range(101):
             spinner.update_progress(current=i, total=100)
-            time.sleep(0.01)
+            time.sleep(0.05)
 
         # Success with instant disappear
         spinner.success("Disappearing instantly!")
-        time.sleep(0.5)
+        time.sleep(1)
         spinner.clear()
 
 
@@ -88,23 +88,23 @@ def demo_fast_fade():
         "fade_away": {
             "enabled": True,
             "direction": "left-to-right",
-            "interval": 0.02,  # Very fast fade (20ms)
+            "interval": 0.08,  # Fast fade (80ms)
         }
     }
 
     spinner = ThothSpinner(message_text="Fast fade animation", **config)
 
-    console.print("\n[cyan]Fast fade animation (20ms interval):[/cyan]")
+    console.print("\n[cyan]Fast fade animation (80ms interval):[/cyan]")
 
     with Live(spinner, console=console, refresh_per_second=20):
         spinner.start()
 
         for i in range(101):
             spinner.update_progress(current=i, total=100)
-            time.sleep(0.01)
+            time.sleep(0.05)
 
         spinner.success("Rapid fade-away!")
-        time.sleep(1)
+        time.sleep(2)
 
 
 def main():
