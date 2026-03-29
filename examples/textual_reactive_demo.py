@@ -11,7 +11,11 @@ from thothspinner.textual.widgets import HintWidget, ProgressWidget, SpinnerWidg
 class ReactiveDemo(App):
     """Demo showing reactive property updates and state CSS classes."""
 
-    BINDINGS = [("ctrl+q", "quit", "Quit")]
+    BINDINGS = [
+        ("tab", "focus_next", "Tab"),
+        ("shift+tab", "focus_previous", "Shift+Tab"),
+        ("ctrl+q", "quit", "Quit"),
+    ]
 
     CSS = """
     Container {

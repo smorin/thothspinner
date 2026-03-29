@@ -11,7 +11,11 @@ from thothspinner.textual.widgets import ProgressWidget
 class ProgressDemo(App):
     """Demo application for ProgressWidget."""
 
-    BINDINGS = [("ctrl+q", "quit", "Quit")]
+    BINDINGS = [
+        ("tab", "focus_next", "Tab"),
+        ("shift+tab", "focus_previous", "Shift+Tab"),
+        ("ctrl+q", "quit", "Quit"),
+    ]
 
     CSS = """
     Container {

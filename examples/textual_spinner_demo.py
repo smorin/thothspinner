@@ -14,7 +14,11 @@ STYLES = ["npm_dots", "claude_stars", "dots", "line", "arc", "circle"]
 class SpinnerDemo(App):
     """Demo application for SpinnerWidget."""
 
-    BINDINGS = [("ctrl+q", "quit", "Quit")]
+    BINDINGS = [
+        ("tab", "focus_next", "Tab"),
+        ("shift+tab", "focus_previous", "Shift+Tab"),
+        ("ctrl+q", "quit", "Quit"),
+    ]
 
     CSS = """
     Container {

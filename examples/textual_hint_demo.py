@@ -11,7 +11,11 @@ from thothspinner.textual.widgets import HintWidget
 class HintDemo(App):
     """Demo application for HintWidget."""
 
-    BINDINGS = [("ctrl+q", "quit", "Quit")]
+    BINDINGS = [
+        ("tab", "focus_next", "Tab"),
+        ("shift+tab", "focus_previous", "Shift+Tab"),
+        ("ctrl+q", "quit", "Quit"),
+    ]
 
     CSS = """
     Container {
