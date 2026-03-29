@@ -81,14 +81,17 @@ class ReactiveDemo(App):
         if event.button.id == "apply-color":
             color_input = self.query_one("#color-input", Input)
             color = color_input.value.strip()
-            if color and color.startswith("#"):
+            hint = self.query_one("#hint", HintWidget)
+            if color and color.startswith("#") and len(color) == 7:
                 try:
                     self.query_one("#spinner", SpinnerWidget).color = color
                     self.query_one("#progress", ProgressWidget).color = color
-                    self.query_one("#hint", HintWidget).color = color
-                    self.query_one("#hint", HintWidget).text = f"Color set to {color}"
+                    hint.color = color
+                    hint.text = f"Color set to {color}"
                 except ValueError:
-                    self.query_one("#hint", HintWidget).text = "Invalid color!"
+                    hint.text = "Invalid color! Use #RRGGBB"
+            else:
+                hint.text = "Enter a valid #RRGGBB color (e.g. #FF0000)"
 
         elif event.button.id == "increment":
             progress = self.query_one("#progress", ProgressWidget)
