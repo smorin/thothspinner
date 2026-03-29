@@ -99,11 +99,17 @@ class ReactiveDemo(App):
             self.query_one("#hint", HintWidget).text = f"Progress: {progress.current}/{progress.total}"
 
         elif event.button.id == "success":
+            self.query_one("#spinner", SpinnerWidget).reset()
+            self.query_one("#progress", ProgressWidget).reset()
+            self.query_one("#hint", HintWidget).reset()
             self.query_one("#spinner", SpinnerWidget).success()
             self.query_one("#progress", ProgressWidget).success()
             self.query_one("#hint", HintWidget).success()
 
         elif event.button.id == "error":
+            self.query_one("#spinner", SpinnerWidget).reset()
+            self.query_one("#progress", ProgressWidget).reset()
+            self.query_one("#hint", HintWidget).reset()
             self.query_one("#spinner", SpinnerWidget).error()
             self.query_one("#progress", ProgressWidget).error()
             self.query_one("#hint", HintWidget).error()
