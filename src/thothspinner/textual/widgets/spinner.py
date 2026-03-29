@@ -91,7 +91,7 @@ class SpinnerWidget(Static):
             self._frames = list(frames)
             self._interval = interval if interval is not None else 0.08
         else:
-            spinner_def = SPINNER_FRAMES.get(style, SPINNER_FRAMES["npm_dots"])
+            spinner_def = SPINNER_FRAMES.get(style) or SPINNER_FRAMES["npm_dots"]
             self._frames = spinner_def["frames"]
             self._interval = spinner_def["interval"]
 

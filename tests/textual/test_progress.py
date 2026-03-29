@@ -549,8 +549,12 @@ def test_bar_format_at_0_50_100_percent():
 def test_bar_format_custom_characters():
     """Test bar format with custom fill and empty characters."""
     widget = ProgressWidget(
-        current=50, total=100, format_style="bar",
-        bar_filled="#", bar_empty="-", bar_width=10,
+        current=50,
+        total=100,
+        format_style="bar",
+        bar_filled="#",
+        bar_empty="-",
+        bar_width=10,
     )
     assert widget._format_progress() == "[#####-----] 50%"
 
@@ -567,17 +571,13 @@ def test_bar_format_custom_width():
 
 def test_bar_format_no_brackets():
     """Test bar_brackets=False omits surrounding brackets."""
-    widget = ProgressWidget(
-        current=50, total=100, format_style="bar", bar_brackets=False
-    )
+    widget = ProgressWidget(current=50, total=100, format_style="bar", bar_brackets=False)
     assert widget._format_progress() == "██████████░░░░░░░░░░ 50%"
 
 
 def test_bar_format_no_percentage_suffix():
     """Test bar_show_percentage=False omits percentage text."""
-    widget = ProgressWidget(
-        current=50, total=100, format_style="bar", bar_show_percentage=False
-    )
+    widget = ProgressWidget(current=50, total=100, format_style="bar", bar_show_percentage=False)
     assert widget._format_progress() == "[██████████░░░░░░░░░░]"
 
 
@@ -625,7 +625,8 @@ async def test_bar_format_reactivity():
     class BarApp(App):
         def compose(self) -> ComposeResult:
             yield ProgressWidget(
-                current=0, total=100,
+                current=0,
+                total=100,
                 format_style="bar",
                 bar_width=10,
                 bar_brackets=False,
@@ -692,7 +693,8 @@ async def test_animate_true_smooth_transitions():
     class AnimApp(App):
         def compose(self) -> ComposeResult:
             yield ProgressWidget(
-                current=0, total=100,
+                current=0,
+                total=100,
                 animate=True,
                 animation_duration=0.1,
                 id="progress",
@@ -723,7 +725,8 @@ async def test_rapid_updates_interrupt_animation():
     class AnimApp(App):
         def compose(self) -> ComposeResult:
             yield ProgressWidget(
-                current=0, total=100,
+                current=0,
+                total=100,
                 animate=True,
                 animation_duration=2.0,
                 id="progress",
@@ -751,7 +754,8 @@ async def test_state_transition_cancels_animation():
     class AnimApp(App):
         def compose(self) -> ComposeResult:
             yield ProgressWidget(
-                current=0, total=100,
+                current=0,
+                total=100,
                 animate=True,
                 animation_duration=2.0,
                 id="progress",
@@ -777,7 +781,8 @@ async def test_reset_cancels_animation_and_jumps_to_zero():
     class AnimApp(App):
         def compose(self) -> ComposeResult:
             yield ProgressWidget(
-                current=0, total=100,
+                current=0,
+                total=100,
                 animate=True,
                 animation_duration=2.0,
                 id="progress",
