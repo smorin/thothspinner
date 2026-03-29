@@ -99,10 +99,16 @@ Animated spinner with customizable frame sequences and styles.
 
 - `npm_dots`: Unicode braille pattern animation
 - `claude_stars`: Animated star pattern
+- `classic`: Classic rotating bar animation
 - `dots`: Simple dot animation
-- `line`: Horizontal line animation
-- `arc`: Arc animation
+- `dots2`, `dots3`: Dot animation variants
+- `arrows`: Animated arrow sequence
 - `circle`: Circle animation
+- `square`: Square pattern animation
+- `triangle`: Triangle rotation animation
+- `bounce`: Bouncing dot animation
+- `box_bounce`: Box bounce animation
+- `star`: Star animation
 
 #### Usage
 
@@ -242,6 +248,14 @@ Reset timer to 00:00.
 
 ##### `resume() -> None`
 Resume the timer from where it was stopped.
+
+##### `__str__() -> str`
+Returns the current elapsed time as a formatted string using the configured format style. Enables direct use in f-strings and `str()` calls:
+
+```python
+console.print(f"Total time: {timer}")   # e.g. "Total time: 5.2s"
+elapsed_str = str(timer)                # e.g. "5.2s"
+```
 
 #### State Behaviors
 

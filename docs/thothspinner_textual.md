@@ -208,10 +208,16 @@ All parameters after `style` are keyword-only.
 
 - `npm_dots`: Unicode braille pattern animation
 - `claude_stars`: Animated star pattern
+- `classic`: Classic rotating bar animation
 - `dots`: Simple dot animation
-- `line`: Horizontal line animation
-- `arc`: Arc animation
+- `dots2`, `dots3`: Dot animation variants
+- `arrows`: Animated arrow sequence
 - `circle`: Circle animation
+- `square`: Square pattern animation
+- `triangle`: Triangle rotation animation
+- `bounce`: Bouncing dot animation
+- `box_bounce`: Box bounce animation
+- `star`: Star animation
 
 #### Default CSS
 
@@ -615,6 +621,7 @@ The main orchestrator composes all 5 widgets into a single coordinated horizonta
 | `error_duration` | `float \| None` | `None` | Auto-clear delay (seconds) |
 | `config` | `dict \| None` | `None` | Full config dict (overrides kwargs) |
 | `render_order` | `list[str] \| None` | All 5 components | Display order |
+| `layout` | `str` | `"horizontal"` | Display orientation: `"horizontal"` or `"vertical"` |
 
 All parameters are keyword-only.
 
