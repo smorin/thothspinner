@@ -48,16 +48,24 @@ class ProgressDemo(App):
                 yield Label("ProgressWidget Format Styles", id="title")
 
                 yield Label("fraction:")
-                yield ProgressWidget(42, 100, format_style="fraction", color="#55FF55", id="p-fraction")
+                yield ProgressWidget(
+                    42, 100, format_style="fraction", color="#55FF55", id="p-fraction"
+                )
 
                 yield Label("percentage:")
-                yield ProgressWidget(42, 100, format_style="percentage", color="#55FF55", id="p-percentage")
+                yield ProgressWidget(
+                    42, 100, format_style="percentage", color="#55FF55", id="p-percentage"
+                )
 
                 yield Label("of_text:")
-                yield ProgressWidget(42, 100, format_style="of_text", color="#55FF55", id="p-of-text")
+                yield ProgressWidget(
+                    42, 100, format_style="of_text", color="#55FF55", id="p-of-text"
+                )
 
                 yield Label("count_only:")
-                yield ProgressWidget(42, 100, format_style="count_only", color="#55FF55", id="p-count")
+                yield ProgressWidget(
+                    42, 100, format_style="count_only", color="#55FF55", id="p-count"
+                )
 
                 yield Label("ratio:")
                 yield ProgressWidget(42, 100, format_style="ratio", color="#55FF55", id="p-ratio")

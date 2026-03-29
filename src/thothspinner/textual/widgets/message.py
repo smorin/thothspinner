@@ -363,14 +363,12 @@ class MessageWidget(Static):
         """
         if text is not None:
             self._current_word = text
-            self._last_word_change = monotonic()
             self._shimmer_start_time = None
             self._pinned_text = True
 
         if trigger_new:
             self._pinned_text = False
             self._select_new_word()
-            self._last_word_change = monotonic()
             self._shimmer_start_time = None
 
         if reverse_shimmer is not None:

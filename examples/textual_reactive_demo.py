@@ -96,7 +96,8 @@ class ReactiveDemo(App):
         elif event.button.id == "increment":
             progress = self.query_one("#progress", ProgressWidget)
             progress.add(10)
-            self.query_one("#hint", HintWidget).text = f"Progress: {progress.current}/{progress.total}"
+            hint = self.query_one("#hint", HintWidget)
+            hint.text = f"Progress: {progress.current}/{progress.total}"
 
         elif event.button.id == "success":
             self.query_one("#spinner", SpinnerWidget).reset()
