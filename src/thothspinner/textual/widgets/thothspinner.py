@@ -72,6 +72,22 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         height: 1;
     }
 
+    ThothSpinnerWidget SpinnerWidget {
+        margin-right: 1;
+    }
+
+    ThothSpinnerWidget MessageWidget {
+        margin-right: 1;
+    }
+
+    ThothSpinnerWidget ProgressWidget {
+        margin-right: 1;
+    }
+
+    ThothSpinnerWidget TimerWidget {
+        margin-right: 1;
+    }
+
     ThothSpinnerWidget.-vertical {
         height: auto;
     }

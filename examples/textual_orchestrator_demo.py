@@ -10,10 +10,18 @@ from textual.widgets import Button, Footer, Label
 from thothspinner.textual import TextualThothSpinner
 
 
+STYLES = ["npm_dots", "claude_stars", "dots", "line", "arc", "circle"]
+
+
 class OrchestratorDemo(App):
     """Demo application for ThothSpinnerWidget orchestrator."""
 
     BINDINGS = [("ctrl+q", "quit", "Quit")]
+
+    def __init__(self) -> None:
+        super().__init__()
+        self._style_index = 0
+        self._shimmer_reversed = False
 
     CSS = """
     Container {
@@ -60,7 +68,6 @@ class OrchestratorDemo(App):
                     progress_format="percentage",
                     timer_format="auto",
                     hint_text="(press Start)",
-                    layout="vertical",
                     id="spinner",
                 )
 
@@ -85,16 +92,20 @@ class OrchestratorDemo(App):
             self.run_worker(self._simulate_progress)
 
         elif event.button.id == "change-style":
-            spinner.set_spinner_style(style="claude_stars")
-            status.update("Status: changed to claude_stars")
+            self._style_index = (self._style_index + 1) % len(STYLES)
+            style = STYLES[self._style_index]
+            spinner.set_spinner_style(style=style)
+            status.update(f"Status: spinner style → {style}")
 
         elif event.button.id == "update-msg":
             spinner.set_message(text="Custom message")
             status.update("Status: message updated")
 
         elif event.button.id == "shimmer-dir":
-            spinner.set_shimmer_direction(direction="right-to-left")
-            status.update("Status: shimmer reversed")
+            self._shimmer_reversed = not self._shimmer_reversed
+            direction = "right-to-left" if self._shimmer_reversed else "left-to-right"
+            spinner.set_shimmer_direction(direction=direction)
+            status.update(f"Status: shimmer → {direction}")
 
         elif event.button.id == "error":
             spinner.start()
