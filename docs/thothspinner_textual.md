@@ -221,6 +221,16 @@ All parameters after `style` are keyword-only.
 - `arc`: Quarter-circle arc rotation
 - `line`: Dashes cycling through thin to thick (`-` → `—` → `─` → `━`)
 - `pulse`: Horizontal block that grows and shrinks (`▏` → `█` → `▏`)
+- `vertical_pulse`: Vertical block that grows and shrinks (`▁` → `█` → `▁`)
+- `pipe`: Box-drawing corners rotating (`┤┘┴└├┌┬┐`)
+- `quarter`: Quarter-circle fill rotating (`◴◷◶◵`)
+- `hamburger`: Three-bar menu morphing (`☱☲☴`)
+
+**Emoji styles** (2-column-wide frames — work well standalone; may shift adjacent text in horizontal layouts):
+
+- `moon`: Lunar phases (`🌑🌒🌓🌔🌕🌖🌗🌘`)
+- `clock`: Clock face cycling through hours (`🕛🕐🕑…🕚`)
+- `earth`: Globe rotating (`🌍🌎🌏`)
 
 #### Default CSS
 

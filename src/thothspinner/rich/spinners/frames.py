@@ -82,6 +82,36 @@ SPINNER_FRAMES: dict[str, SpinnerDefinition] = {
         "frames": ["▏", "▎", "▍", "▌", "▋", "▊", "▉", "█", "▉", "▊", "▋", "▌", "▍", "▎"],
         "interval": 0.08,
     },
+    "pipe": {
+        "frames": ["┤", "┘", "┴", "└", "├", "┌", "┬", "┐"],
+        "interval": 0.1,
+    },
+    "vertical_pulse": {
+        "frames": ["▁", "▂", "▃", "▄", "▅", "▆", "▇", "█", "▇", "▆", "▅", "▄", "▃", "▂"],
+        "interval": 0.08,
+    },
+    "quarter": {
+        "frames": ["◴", "◷", "◶", "◵"],
+        "interval": 0.12,
+    },
+    "hamburger": {
+        "frames": ["☱", "☲", "☴"],
+        "interval": 0.2,
+    },
+    # Emoji styles — frames are 2 columns wide; may shift adjacent text in
+    # horizontal layouts. Work well as standalone spinners.
+    "moon": {
+        "frames": ["🌑", "🌒", "🌓", "🌔", "🌕", "🌖", "🌗", "🌘"],
+        "interval": 0.1,
+    },
+    "clock": {
+        "frames": ["🕛", "🕐", "🕑", "🕒", "🕓", "🕔", "🕕", "🕖", "🕗", "🕘", "🕙", "🕚"],
+        "interval": 0.1,
+    },
+    "earth": {
+        "frames": ["🌍", "🌎", "🌏"],
+        "interval": 0.18,
+    },
 }
 
 
