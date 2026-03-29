@@ -235,6 +235,7 @@ All parameters after `style` are keyword-only.
 - `snowflake`: Crystal forming and dissolving (`·∗✦❄✦∗·`)
 - `zodiac`: Cycling through the 12 zodiac signs (`♈♉♊…♓`)
 - `rune`: Elder Futhark letters cycling (`ᚠᚢᚦᚨᚱᚲ…`)
+- `matrix`: Half-width katakana cycling at high speed (`ｦｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃ`)
 
 #### Default CSS
 

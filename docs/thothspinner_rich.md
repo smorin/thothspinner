@@ -126,6 +126,7 @@ Animated spinner with customizable frame sequences and styles.
 - `snowflake`: Crystal forming and dissolving (`·∗✦❄✦∗·`)
 - `zodiac`: Cycling through the 12 zodiac signs (`♈♉♊…♓`)
 - `rune`: Elder Futhark letters cycling (`ᚠᚢᚦᚨᚱᚲ…`)
+- `matrix`: Half-width katakana cycling at high speed (`ｦｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃ`)
 
 #### Usage
 
