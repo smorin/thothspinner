@@ -136,6 +136,10 @@ Animated spinner with customizable frame sequences and styles.
 - `heartbeat`: Heart building intensity and falling (`♡❣♥❤♥❣♡`)
 - `weather`: Unicode weather symbols sun to snow (`☀☁☂☃`)
 - `rings`: Expanding ripple rings (`·○◎⊚◎○·`)
+- `iris`: Dot expanding from pinpoint to filled circle and back (`·◌○◍●◍○◌`)
+- `moon_tide`: Crescent moon cycling through phases (`☽◔◑◕☾◕◑◔`)
+- `collapse`: Braille collapsing inward then expanding (`⠿⠷⠧⠇⠃⠁⠃⠇⠧⠷`)
+- `shield_break`: Square shattering and reforming (`□▣■▣□`)
 
 #### Usage
 

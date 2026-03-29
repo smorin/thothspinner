@@ -36,7 +36,7 @@ uv run python examples/textual_spinner_demo.py
 ```
 
 Features demonstrated:
-- All 37 built-in spinner styles (`npm_dots`, `claude_stars`, `classic`, `dots`, `arc`, `line`, `pulse`, `moon`, `clock`, `dice`, `rune`, `matrix`, `orbit`, `heartbeat`, `weather`, and more)
+- All 41 built-in spinner styles (`npm_dots`, `claude_stars`, `classic`, `dots`, `arc`, `line`, `pulse`, `moon`, `clock`, `dice`, `rune`, `matrix`, `orbit`, `heartbeat`, `weather`, `iris`, `collapse`, and more)
 - `set_speed()` for 0.25x to 8x speed control
 - `pause()` toggle for pause/resume
 - `success()`, `error()`, and `reset()` state transitions

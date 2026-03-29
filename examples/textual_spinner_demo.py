@@ -8,7 +8,7 @@ from textual.widgets import Button, Footer, Label
 from thothspinner.textual.widgets import SpinnerWidget
 
 
-STYLES = ["npm_dots", "claude_stars", "dots", "arc", "line", "pulse", "vertical_pulse", "pipe", "quarter", "hamburger", "moon", "clock", "earth", "dice", "snowflake", "zodiac", "rune", "matrix", "orbit", "diamond", "toggle", "cursor", "suits", "notes", "heartbeat", "weather", "rings", "classic", "circle", "star"]
+STYLES = ["npm_dots", "claude_stars", "dots", "arc", "line", "pulse", "vertical_pulse", "pipe", "quarter", "hamburger", "moon", "clock", "earth", "dice", "snowflake", "zodiac", "rune", "matrix", "orbit", "diamond", "toggle", "cursor", "suits", "notes", "heartbeat", "weather", "rings", "iris", "moon_tide", "collapse", "shield_break", "classic", "circle", "star"]
 
 
 class SpinnerDemo(App):

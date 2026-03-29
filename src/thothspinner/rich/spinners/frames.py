@@ -168,6 +168,22 @@ SPINNER_FRAMES: dict[str, SpinnerDefinition] = {
         "frames": ["·", "○", "◎", "⊚", "◎", "○", "·"],
         "interval": 0.12,
     },
+    "iris": {
+        "frames": ["·", "◌", "○", "◍", "●", "◍", "○", "◌"],
+        "interval": 0.12,
+    },
+    "moon_tide": {
+        "frames": ["☽", "◔", "◑", "◕", "☾", "◕", "◑", "◔"],
+        "interval": 0.12,
+    },
+    "collapse": {
+        "frames": ["⠿", "⠷", "⠧", "⠇", "⠃", "⠁", "⠃", "⠇", "⠧", "⠷"],
+        "interval": 0.08,
+    },
+    "shield_break": {
+        "frames": ["□", "▣", "■", "▣", "□"],
+        "interval": 0.12,
+    },
 }
 
 
