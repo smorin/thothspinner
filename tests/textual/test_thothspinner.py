@@ -108,6 +108,18 @@ class TestConfigHierarchy:
         resolved = widget._resolve_config("spinner")
         assert resolved["color"] == "#222222"
 
+    def test_component_visibility_override_applied_on_creation(self):
+        """Element visibility overrides the default on child construction."""
+        widget = ThothSpinnerWidget(
+            config={
+                "defaults": {"visible": True},
+                "elements": {"hint": {"visible": False}},
+            }
+        )
+
+        assert widget.hint.display is False
+        assert widget.spinner.display is True
+
     def test_config_invalid_component(self):
         """Invalid component type in elements raises KeyError."""
         with pytest.raises(KeyError, match="Invalid component type"):
@@ -300,6 +312,16 @@ class TestStateManagement:
         assert widget.message.state == ComponentState.IN_PROGRESS
         assert widget.progress.state == ComponentState.IN_PROGRESS
         assert widget.timer.state == ComponentState.IN_PROGRESS
+
+    def test_reset_restores_configured_component_visibility(self):
+        """Reset restores each child to its configured default display state."""
+        widget = ThothSpinnerWidget(config={"elements": {"hint": {"visible": False}}})
+
+        widget.clear()
+        widget.reset()
+
+        assert widget.hint.display is False
+        assert widget.spinner.display is True
 
     def test_clear_hides_all(self):
         """Clear hides all child widgets."""

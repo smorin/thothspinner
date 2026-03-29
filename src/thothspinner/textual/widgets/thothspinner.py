@@ -195,6 +195,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
 
         # Eagerly create all child widgets
         self._components: dict[str, Widget] = {}
+        self._component_display_defaults: dict[str, bool] = {}
         self._create_all_components()
 
         if not visible:
@@ -359,11 +360,16 @@ class ThothSpinnerWidget(Widget, can_focus=False):
 
     def _create_all_components(self) -> None:
         """Create all 5 child widgets from resolved configs."""
-        spinner_config = self._resolve_config("spinner")
-        message_config = self._resolve_config("message")
-        progress_config = self._resolve_config("progress")
-        timer_config = self._resolve_config("timer")
-        hint_config = self._resolve_config("hint")
+        resolved_configs = {name: self._resolve_config(name) for name in self._render_order}
+        self._component_display_defaults = {
+            name: bool(config.get("visible", True)) for name, config in resolved_configs.items()
+        }
+
+        spinner_config = resolved_configs["spinner"]
+        message_config = resolved_configs["message"]
+        progress_config = resolved_configs["progress"]
+        timer_config = resolved_configs["timer"]
+        hint_config = resolved_configs["hint"]
 
         self._components = {
             "spinner": SpinnerWidget.from_config(spinner_config),
@@ -372,6 +378,9 @@ class ThothSpinnerWidget(Widget, can_focus=False):
             "timer": TimerWidget.from_config(timer_config),
             "hint": HintWidget.from_config(hint_config),
         }
+
+        for name, component in self._components.items():
+            component.display = self._component_display_defaults[name]
 
     def compose(self) -> ComposeResult:
         """Yield child widgets in render order within a Horizontal or Vertical container."""
@@ -512,7 +521,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
             if component is not None and hasattr(component, "reset"):
                 component.reset()  # type: ignore[union-attr]
             if component is not None:
-                component.display = True
+                component.display = self._component_display_defaults.get(name, True)
 
     def clear(self) -> None:
         """Hide all child widgets and cancel auto-clear timer."""
