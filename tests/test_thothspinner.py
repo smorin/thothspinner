@@ -150,6 +150,50 @@ class TestStateManagement:
 
         assert spinner.state == ComponentState.ERROR
 
+    def test_success_without_message_renders(self):
+        """Test success() without a message uses component defaults."""
+        console = Console(file=StringIO(), force_terminal=True, width=80)
+        spinner = ThothSpinner()
+
+        spinner.success()
+        console.print(spinner)
+
+        output = console.file.getvalue()
+        assert "Complete!" in output
+
+    def test_error_without_message_renders(self):
+        """Test error() without a message uses component defaults."""
+        console = Console(file=StringIO(), force_terminal=True, width=80)
+        spinner = ThothSpinner()
+
+        spinner.error()
+        console.print(spinner)
+
+        output = console.file.getvalue()
+        assert "Failed" in output
+
+    def test_success_with_explicit_message_renders(self):
+        """Test success() preserves an explicit message override."""
+        console = Console(file=StringIO(), force_terminal=True, width=80)
+        spinner = ThothSpinner()
+
+        spinner.success("Done")
+        console.print(spinner)
+
+        output = console.file.getvalue()
+        assert "Done" in output
+
+    def test_error_with_explicit_message_renders(self):
+        """Test error() preserves an explicit message override."""
+        console = Console(file=StringIO(), force_terminal=True, width=80)
+        spinner = ThothSpinner()
+
+        spinner.error("Failed badly")
+        console.print(spinner)
+
+        output = console.file.getvalue()
+        assert "Failed badly" in output
+
     def test_reset_method(self):
         """Test reset returns to IN_PROGRESS."""
         spinner = ThothSpinner()
@@ -157,6 +201,16 @@ class TestStateManagement:
         spinner.reset()
 
         assert spinner.state == ComponentState.IN_PROGRESS
+
+    def test_reset_restores_configured_component_visibility(self):
+        """Test reset restores each component's configured visibility."""
+        spinner = ThothSpinner(elements={"hint": {"visible": False}})
+
+        spinner.clear()
+        spinner.reset()
+
+        assert spinner._components["hint"].visible is False
+        assert spinner._components["spinner"].visible is True
 
     def test_invalid_transition(self):
         """Test invalid state transition raises ValueError."""
@@ -432,6 +486,13 @@ class TestConfiguration:
         # Component-specific should win
         resolved = spinner._resolve_config("spinner")
         assert resolved["color"] == "#FF0000"
+
+    def test_component_visibility_override_applied_on_creation(self):
+        """Test component visibility overrides global defaults on initialization."""
+        spinner = ThothSpinner(defaults={"visible": True}, elements={"hint": {"visible": False}})
+
+        assert spinner._components["hint"].visible is False
+        assert spinner._components["spinner"].visible is True
 
     def test_validate_config(self):
         """Test configuration validation."""

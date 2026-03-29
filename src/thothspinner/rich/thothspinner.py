@@ -102,6 +102,7 @@ class ThothSpinner:
 
         # Simplified registry with short names
         self._components: dict[str, Any] = {}
+        self._component_visibility_defaults: dict[str, bool] = {}
         # Immutable render order (tuple prevents mutations)
         self._render_order: tuple[str, ...] = ("spinner", "message", "progress", "timer", "hint")
 
@@ -262,12 +263,17 @@ class ThothSpinner:
         Like Rich's Status which creates its Spinner immediately.
         """
         with self._lock:
-            # Create all 5 components with resolved configs (eager creation)
-            spinner_config = self._filter_component_config(self._resolve_config("spinner"))
-            message_config = self._filter_component_config(self._resolve_config("message"))
-            progress_config = self._filter_component_config(self._resolve_config("progress"))
-            timer_config = self._filter_component_config(self._resolve_config("timer"))
-            hint_config = self._filter_component_config(self._resolve_config("hint"))
+            # Resolve configs once so component visibility defaults survive construction and reset.
+            resolved_configs = {name: self._resolve_config(name) for name in self._render_order}
+            self._component_visibility_defaults = {
+                name: bool(config.get("visible", True)) for name, config in resolved_configs.items()
+            }
+
+            spinner_config = self._filter_component_config(resolved_configs["spinner"])
+            message_config = self._filter_component_config(resolved_configs["message"])
+            progress_config = self._filter_component_config(resolved_configs["progress"])
+            timer_config = self._filter_component_config(resolved_configs["timer"])
+            hint_config = self._filter_component_config(resolved_configs["hint"])
 
             self._components = {
                 "spinner": SpinnerComponent(**spinner_config),
@@ -277,10 +283,8 @@ class ThothSpinner:
                 "hint": HintComponent(**hint_config),
             }
 
-            # Set visible property on all components (it's a property, not init param)
-            default_visible = self.config.get("defaults", {}).get("visible", True)
-            for component in self._components.values():
-                component.visible = default_visible
+            for name, component in self._components.items():
+                component.visible = self._component_visibility_defaults[name]
 
             # Validate render order matches actual components
             if "render_order" in self.config:
@@ -299,11 +303,7 @@ class ThothSpinner:
         """
         # Properties that are metadata, not component init parameters
         exclude_keys = {"success", "error", "behavior", "duration", "visible"}
-        filtered = {k: v for k, v in config.items() if k not in exclude_keys}
-
-        # Store visible separately to set after creation
-        self._pending_visible = config.get("visible", True)
-        return filtered
+        return {k: v for k, v in config.items() if k not in exclude_keys}
 
     def get_component(self, component_type: str) -> Any:
         """Type-based component access with validation.
@@ -514,7 +514,7 @@ class ThothSpinner:
                 component = self._components[name]
                 if hasattr(component, "reset"):
                     component.reset()
-                component.visible = True
+                component.visible = self._component_visibility_defaults.get(name, True)
 
     def clear(self) -> None:
         """Stop and clear display.
@@ -542,6 +542,22 @@ class ThothSpinner:
         Thread-safe propagation with proper locking.
         Must be called with lock held.
         """
+
+        def invoke_state_method(component: Any, method_name: str) -> None:
+            """Invoke a terminal-state method, preserving component defaults."""
+            if not hasattr(component, method_name):
+                return
+
+            method = getattr(component, method_name)
+            if message is None:
+                method()
+                return
+
+            try:
+                method(message)
+            except TypeError:
+                method()
+
         state_name = state.name.lower()
 
         # Get global state config
@@ -565,25 +581,13 @@ class ThothSpinner:
                 component.visible = False
             elif behavior == "indicator":
                 # Call component's state method if it exists
-                method_name = state_name  # 'success', 'error'
-                if hasattr(component, method_name):
-                    method = getattr(component, method_name)
-                    try:
-                        method(message)
-                    except TypeError:
-                        method()
+                invoke_state_method(component, state_name)
             elif behavior == "message":
                 if hasattr(component, "set_text"):
                     component.set_text(message or global_state_config.get("message"))
             elif behavior == "both":
                 # Both indicator and message
-                method_name = state_name
-                if hasattr(component, method_name):
-                    method = getattr(component, method_name)
-                    try:
-                        method(message)
-                    except TypeError:
-                        method()
+                invoke_state_method(component, state_name)
                 if hasattr(component, "set_text"):
                     component.set_text(message or global_state_config.get("message"))
 

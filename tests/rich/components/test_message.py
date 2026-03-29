@@ -9,6 +9,8 @@ from rich.text import Text
 from thothspinner.core.states import ComponentState
 from thothspinner.rich.components.message import (
     DEFAULT_ACTION_WORDS,
+    DEFAULT_ERROR_TEXT,
+    DEFAULT_SUCCESS_TEXT,
     MessageComponent,
 )
 
@@ -388,14 +390,30 @@ class TestStateManagement:
         message = MessageComponent()
         message.success()
 
-        assert message._static_text == "Complete!"
+        assert message._static_text == DEFAULT_SUCCESS_TEXT
 
     def test_error_with_default_text(self):
         """Test error with default text."""
         message = MessageComponent()
         message.error()
 
-        assert message._static_text == "Failed"
+        assert message._static_text == DEFAULT_ERROR_TEXT
+
+    def test_success_with_none_uses_default_text(self):
+        """Test success(None) falls back to the default success text."""
+        message = MessageComponent()
+        message.success(None)
+
+        assert message._static_text == DEFAULT_SUCCESS_TEXT
+        assert message._render_current_state(0.0).plain == DEFAULT_SUCCESS_TEXT
+
+    def test_error_with_none_uses_default_text(self):
+        """Test error(None) falls back to the default error text."""
+        message = MessageComponent()
+        message.error(None)
+
+        assert message._static_text == DEFAULT_ERROR_TEXT
+        assert message._render_current_state(0.0).plain == DEFAULT_ERROR_TEXT
 
 
 class TestRichIntegration:

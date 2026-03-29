@@ -7,6 +7,7 @@ import io
 import pytest
 from rich.console import Console
 
+from thothspinner.core.color import COLOR_ERROR, COLOR_SUCCESS
 from thothspinner.core.states import ComponentState
 from thothspinner.rich.components import SpinnerComponent
 
@@ -126,12 +127,16 @@ class TestSpinnerComponent:
         # Transition to success
         spinner.success()
 
+        rendered = list(spinner.__rich_console__(console, console.options))[0]
+        assert rendered.plain == "✓"
+        assert rendered.style is not None
+        assert rendered.style.color is not None
+        assert COLOR_SUCCESS.lower() in str(rendered.style.color).lower()
+
         # Render and check output
         console.print(spinner)
         output = console.file.getvalue()
         assert "✓" in output
-        # Check for green color (ANSI code)
-        assert "\x1b[38;2;0;255;0m" in output or "00ff00" in output.lower()
 
     def test_error_state_rendering(self):
         """Test M02-TS09: Error state rendering."""
@@ -141,12 +146,16 @@ class TestSpinnerComponent:
         # Transition to error
         spinner.error()
 
+        rendered = list(spinner.__rich_console__(console, console.options))[0]
+        assert rendered.plain == "✗"
+        assert rendered.style is not None
+        assert rendered.style.color is not None
+        assert COLOR_ERROR.lower() in str(rendered.style.color).lower()
+
         # Render and check output
         console.print(spinner)
         output = console.file.getvalue()
         assert "✗" in output
-        # Check for red color (ANSI code)
-        assert "\x1b[38;2;255;0;0m" in output or "ff0000" in output.lower()
 
     def test_visibility_control(self):
         """Test visibility property controls rendering."""

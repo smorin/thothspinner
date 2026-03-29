@@ -30,6 +30,8 @@ DEFAULT_MIN_INTERVAL = 0.5
 DEFAULT_MAX_INTERVAL = 3.0
 DEFAULT_SHIMMER_WIDTH = 3
 DEFAULT_SHIMMER_SPEED = 1.0
+DEFAULT_SUCCESS_TEXT = "Complete!"
+DEFAULT_ERROR_TEXT = "Failed"
 
 # Default action words list (87 words from PRD)
 DEFAULT_ACTION_WORDS = [
@@ -317,7 +319,7 @@ class MessageComponent:
     # Backward-compatible alias
     update = configure
 
-    def success(self, text: str = "Complete!") -> None:
+    def success(self, text: str | None = None) -> None:
         """Transition to success state with custom text.
 
         Args:
@@ -326,9 +328,9 @@ class MessageComponent:
         if not self._state.can_transition_to(ComponentState.SUCCESS):
             return
         self._state = ComponentState.SUCCESS
-        self._static_text = text
+        self._static_text = text if text is not None else DEFAULT_SUCCESS_TEXT
 
-    def error(self, text: str = "Failed") -> None:
+    def error(self, text: str | None = None) -> None:
         """Transition to error state with custom text.
 
         Args:
@@ -337,7 +339,7 @@ class MessageComponent:
         if not self._state.can_transition_to(ComponentState.ERROR):
             return
         self._state = ComponentState.ERROR
-        self._static_text = text
+        self._static_text = text if text is not None else DEFAULT_ERROR_TEXT
 
     def reset(self) -> None:
         """Reset to in_progress state."""
