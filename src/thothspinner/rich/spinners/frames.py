@@ -70,6 +70,18 @@ SPINNER_FRAMES: dict[str, SpinnerDefinition] = {
         "frames": ["✶", "✸", "✹", "✺", "✹", "✸"],
         "interval": 0.08,
     },
+    "arc": {
+        "frames": ["◜", "◠", "◝", "◞", "◡", "◟"],
+        "interval": 0.1,
+    },
+    "line": {
+        "frames": ["-", "—", "─", "━"],
+        "interval": 0.12,
+    },
+    "pulse": {
+        "frames": ["▏", "▎", "▍", "▌", "▋", "▊", "▉", "█", "▉", "▊", "▋", "▌", "▍", "▎"],
+        "interval": 0.08,
+    },
 }
 
 

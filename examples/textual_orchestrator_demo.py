@@ -10,7 +10,7 @@ from textual.widgets import Button, Footer, Label
 from thothspinner.textual import TextualThothSpinner
 
 
-STYLES = ["npm_dots", "claude_stars", "dots", "classic", "circle", "star"]
+STYLES = ["npm_dots", "claude_stars", "dots", "arc", "line", "pulse", "classic", "circle", "star"]
 
 
 class OrchestratorDemo(App):

@@ -110,10 +110,10 @@ console = Console()
 styles = [
     "npm_dots",
     "claude_stars",
-    "classic",
     "dots",
-    "arrows",
-    "circle"
+    "line",
+    "arc",
+    "pulse"
 ]
 
 for style in styles:
@@ -605,9 +605,9 @@ spinner = ThothSpinner()
 phases = [
     ("Initializing", "npm_dots", "#FF0000"),
     ("Connecting", "claude_stars", "#FFA500"),
-    ("Authenticating", "classic", "#FFFF00"),
+    ("Authenticating", "arc", "#FFFF00"),
     ("Loading data", "circle", "#00FF00"),
-    ("Processing", "arrows", "#00FFFF"),
+    ("Processing", "line", "#00FFFF"),
     ("Finalizing", "dots", "#FF00FF")
 ]
 

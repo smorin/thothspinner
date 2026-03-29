@@ -109,6 +109,9 @@ Animated spinner with customizable frame sequences and styles.
 - `bounce`: Bouncing dot animation
 - `box_bounce`: Box bounce animation
 - `star`: Star animation
+- `arc`: Quarter-circle arc rotation
+- `line`: Dashes cycling through thin to thick (`-` → `—` → `─` → `━`)
+- `pulse`: Horizontal block that grows and shrinks (`▏` → `█` → `▏`)
 
 #### Usage
 
