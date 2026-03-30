@@ -306,7 +306,7 @@ Displays rotating action words with optional shimmer effects.
 
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
-| `text` | `str` | Random action word | Initial message text |
+| `text` | `str` | Random action word | Initial rotating message text |
 | `action_words` | `List[str]` | 87 default words | Word pool for rotation |
 | `interval` | `Dict[str, float]` | `{"min": 0.5, "max": 3.0}` | Rotation interval range |
 | `color` | `str` | `"#D97706"` | Base color |
@@ -355,6 +355,18 @@ with Live(message, refresh_per_second=20) as live:
 
 The main orchestrator that combines all components into a unified display.
 
+ThothSpinner always manages five child objects:
+
+- `spinner`: Animated activity indicator.
+- `message`: Rotating action-word message component.
+- `progress`: Numeric progress display.
+- `timer`: Elapsed time display.
+- `hint`: Static helper text.
+
+The `message` object is intentionally the rotating message component. Use
+`set_message()` to update the current rotating text, and `set_message_pinned()`
+when you explicitly want a non-rotating override.
+
 ### Configuration
 
 ```python
@@ -363,7 +375,7 @@ from thothspinner import ThothSpinner
 # Simple initialization with kwargs
 spinner = ThothSpinner(
     spinner_style="npm_dots",
-    message_text="Loading data",
+    message_text="Loading data",  # initial rotating message text
     message_shimmer=True,
     progress_format="percentage",
     timer_format="auto",
@@ -450,11 +462,18 @@ Stop and hide all components.
 
 #### Component Control
 
+`set_message()` keeps the message component in rotating mode. Pinned
+non-rotating text is a separate, explicit API.
+
 ##### `update_progress(*, current: int, total: Optional[int] = None) -> None`
 Update the progress component.
 
-##### `set_message(*, text: str) -> None`
-Update the message component text.
+##### `set_message(*, text: str, restart_rotation: bool = False) -> None`
+Update the current rotating message text. Set `restart_rotation=True` to give
+that text a full fresh rotation interval before the next automatic word change.
+
+##### `set_message_pinned(*, text: str) -> None`
+Pin the message text so it does not rotate until another rotation API clears it.
 
 ##### `set_spinner_style(*, style: str) -> None`
 Change the spinner animation style.
@@ -515,7 +534,7 @@ def process_files(directory: Path):
         spinner.start()
         
         for i, file in enumerate(files):
-            spinner.set_message(text=f"Processing {file.name}")
+            spinner.set_message_pinned(text=f"Processing {file.name}")
             spinner.update_progress(current=i, total=len(files))
             
             # Process file
@@ -620,7 +639,7 @@ from rich.live import Live
 with Live(ThothSpinner(), transient=True) as live:
     spinner = live.renderable
     spinner.start()
-    spinner.set_message(text="Processing")
+    spinner.set_message_pinned(text="Processing")
     
     for i in range(100):
         spinner.update_progress(current=i, total=100)
@@ -702,11 +721,11 @@ class DataProcessor:
     
     def on_data_received(self, size: int):
         self.spinner.set_shimmer_direction(direction="right-to-left")
-        self.spinner.set_message(text=f"Receiving {size} bytes")
+        self.spinner.set_message_pinned(text=f"Receiving {size} bytes")
     
     def on_data_sent(self, size: int):
         self.spinner.set_shimmer_direction(direction="left-to-right")
-        self.spinner.set_message(text=f"Sending {size} bytes")
+        self.spinner.set_message_pinned(text=f"Sending {size} bytes")
 ```
 
 ## Best Practices
@@ -737,7 +756,7 @@ class DataProcessor:
 
 ### Key Methods
 - State Management: `start()`, `success()`, `error()`, `reset()`, `clear()`
-- Progress Control: `update_progress()`, `set_message()`, `set_hint()`
+- Progress Control: `update_progress()`, `set_message()`, `set_message_pinned()`, `set_hint()`
 - Configuration: `from_dict()`, `get_component()`, `update_component()`
 
 ### Configuration Keys

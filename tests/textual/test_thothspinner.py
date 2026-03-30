@@ -55,6 +55,11 @@ class TestInitialization:
         widget = ThothSpinnerWidget(hint_text="Press q to quit")
         assert widget.hint.text == "Press q to quit"
 
+    def test_initialization_message_text_sets_initial_rotating_message(self):
+        """message_text seeds the first rotating message render."""
+        widget = ThothSpinnerWidget(message_text="Testing")
+        assert widget.message._current_word == "Testing"
+
     def test_initialization_hidden(self):
         """visible=False sets display to False."""
         widget = ThothSpinnerWidget(visible=False)
@@ -77,6 +82,11 @@ class TestInitialization:
             }
         )
         assert widget.hint.text == "custom hint"
+
+    def test_initialization_message_text_from_config(self):
+        """elements.message.text seeds the first rotating message render."""
+        widget = ThothSpinnerWidget(config={"elements": {"message": {"text": "From config"}}})
+        assert widget.message._current_word == "From config"
 
     def test_initialization_config_durations(self):
         """Durations from config dict applied."""
@@ -456,9 +466,60 @@ class TestConvenienceMethods:
 
     def test_set_message(self):
         """set_message delegates to message widget."""
-        widget = ThothSpinnerWidget()
+        widget = ThothSpinnerWidget(
+            config={
+                "elements": {
+                    "message": {
+                        "action_words": ["Rotating"],
+                        "interval": {"min": 0.5, "max": 0.5},
+                        "shimmer": {"enabled": False},
+                    }
+                }
+            }
+        )
         widget.set_message(text="Processing data...")
-        assert widget.message._current_word == "Processing data..."
+        with patch("thothspinner.textual.widgets.message.monotonic", side_effect=[0.0, 0.0]):
+            assert widget.message.render().plain == "Processing data...…"
+            assert widget.message.render().plain == "Rotating…"
+
+    def test_set_message_restart_rotation(self):
+        """set_message can restart the rotation timer when requested."""
+        widget = ThothSpinnerWidget(
+            config={
+                "elements": {
+                    "message": {
+                        "action_words": ["Rotating"],
+                        "interval": {"min": 0.5, "max": 0.5},
+                        "shimmer": {"enabled": False},
+                    }
+                }
+            }
+        )
+        widget.set_message(text="Processing data...", restart_rotation=True)
+
+        with patch("thothspinner.textual.widgets.message.monotonic", side_effect=[0.0, 0.3, 0.6]):
+            assert widget.message.render().plain == "Processing data...…"
+            assert widget.message.render().plain == "Processing data...…"
+            assert widget.message.render().plain == "Rotating…"
+
+    def test_set_message_pinned(self):
+        """set_message_pinned delegates to the explicit pinned path."""
+        widget = ThothSpinnerWidget(
+            config={
+                "elements": {
+                    "message": {"action_words": ["Rotating"], "shimmer": {"enabled": False}}
+                }
+            }
+        )
+        widget.set_message_pinned(text="Pinned")
+
+        with patch("thothspinner.textual.widgets.message.monotonic", side_effect=[0.0, 10.0]):
+            assert widget.message.render().plain == "Pinned…"
+            assert widget.message.render().plain == "Pinned…"
+
+        widget.set_message(text="Rotating again")
+        with patch("thothspinner.textual.widgets.message.monotonic", return_value=10.0):
+            assert widget.message.render().plain == "Rotating again…"
 
     def test_set_hint(self):
         """set_hint delegates to hint widget."""
@@ -624,6 +685,7 @@ class TestFeatureParity:
         # Convenience methods
         assert hasattr(widget, "update_progress")
         assert hasattr(widget, "set_message")
+        assert hasattr(widget, "set_message_pinned")
         assert hasattr(widget, "set_hint")
         assert hasattr(widget, "set_spinner_style")
         assert hasattr(widget, "set_shimmer_direction")

@@ -10,6 +10,10 @@ This directory contains comprehensive examples demonstrating various uses of Tho
 4. [Integration Examples](#integration-examples)
 5. [Advanced Patterns](#advanced-patterns)
 
+`set_message()` updates the current rotating message text. Use
+`set_message_pinned()` when a phase label or status line should stay fixed
+until you explicitly replace or clear it.
+
 ## Basic Examples
 
 ### Simple Spinner
@@ -50,7 +54,7 @@ console = Console()
 
 spinner = ThothSpinner(
     progress_format="percentage",
-    message_text="Processing items"
+    message_text="Processing items"  # initial rotating message text
 )
 
 with Live(spinner, console=console) as live:
@@ -79,7 +83,7 @@ console = Console()
 spinner = ThothSpinner(
     timer_format="auto",
     spinner_style="claude_stars",
-    message_text="Running long operation"
+    message_text="Running long operation"  # initial rotating message text
 )
 
 with Live(spinner, console=console, refresh_per_second=10) as live:
@@ -344,7 +348,7 @@ spinner = ThothSpinner(
 with Live(spinner, console=console) as live:
     # Start in IN_PROGRESS state
     spinner.start()
-    spinner.set_message(text="Starting process")
+    spinner.set_message_pinned(text="Starting process")
     time.sleep(2)
     
     # Simulate error
@@ -353,7 +357,7 @@ with Live(spinner, console=console) as live:
     
     # Reset and try again
     spinner.reset()
-    spinner.set_message(text="Retrying connection")
+    spinner.set_message_pinned(text="Retrying connection")
     time.sleep(2)
     
     # Success this time
@@ -570,7 +574,7 @@ retry_count = 0
 with Live(spinner, console=console) as live:
     while retry_count < max_retries:
         spinner.start() if retry_count == 0 else spinner.reset()
-        spinner.set_message(
+        spinner.set_message_pinned(
             text=f"Attempt {retry_count + 1}/{max_retries}"
         )
         
@@ -616,7 +620,7 @@ with Live(spinner, console=console, refresh_per_second=20) as live:
     
     for phase, style, color in phases:
         # Update multiple components
-        spinner.set_message(text=phase)
+        spinner.set_message_pinned(text=phase)
         spinner.set_spinner_style(style=style)
         spinner.set_hint(text=f"Phase: {phase}")
         
@@ -653,14 +657,14 @@ class DataTransfer:
     def send_data(self, size: int):
         """Simulate sending data."""
         self.spinner.set_shimmer_direction(direction="left-to-right")
-        self.spinner.set_message(text=f"Sending {size}KB")
+        self.spinner.set_message_pinned(text=f"Sending {size}KB")
         self.total_sent += size
         time.sleep(0.5)
     
     def receive_data(self, size: int):
         """Simulate receiving data."""
         self.spinner.set_shimmer_direction(direction="right-to-left")
-        self.spinner.set_message(text=f"Receiving {size}KB")
+        self.spinner.set_message_pinned(text=f"Receiving {size}KB")
         self.total_received += size
         time.sleep(0.5)
 
@@ -720,7 +724,7 @@ with Live(spinner, console=console) as live:
     overall_progress = 0
     
     for task_name, weight in tasks:
-        spinner.set_message(text=task_name)
+        spinner.set_message_pinned(text=task_name)
         spinner.set_hint(text=f"Step {tasks.index((task_name, weight)) + 1}/{len(tasks)}")
         
         # Simulate task progress

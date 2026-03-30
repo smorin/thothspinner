@@ -542,6 +542,7 @@ Displays rotating action words with optional shimmer animation effects.
 | `color` | `str` | `"#D97706"` | Base hex color |
 | `shimmer` | `dict[str, Any] \| None` | See below | Shimmer effect config |
 | `suffix` | `str` | `"…"` | Suffix appended to words (Unicode ellipsis) |
+| `text` | `str \| None` | `None` | Initial rotating message text |
 | `success_text` | `str` | `"Complete!"` | Text for success state |
 | `error_text` | `str` | `"Failed"` | Text for error state |
 | `visible` | `bool` | `True` | Initial visibility |
@@ -607,8 +608,10 @@ MessageWidget.error   { color: $error; }
 ##### `extend_action_words(words: list[str]) -> None`
 Add words to the existing word list.
 
-##### `configure(*, text: str | None = None, trigger_new: bool = False, reverse_shimmer: bool | None = None) -> None`
-Update component state. Set custom text, force new word selection, or change shimmer direction.
+##### `configure(*, text: str | None = None, pinned_text: str | None = None, restart_rotation: bool = False, trigger_new: bool = False, reverse_shimmer: bool | None = None) -> None`
+Update component state. `text` updates the current rotating message, `pinned_text`
+creates an explicit non-rotating override, and `restart_rotation=True` gives
+`text` a full fresh interval before the next automatic word change.
 
 ##### `success(text: str | None = None) -> None`
 Transition to success state. Shows `success_text`.
@@ -643,7 +646,7 @@ The main orchestrator composes all 5 widgets into a single coordinated horizonta
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `spinner_style` | `str` | `"npm_dots"` | Spinner animation style |
-| `message_text` | `str` | `"Loading"` | Initial message text |
+| `message_text` | `str` | `"Loading"` | Initial rotating message text |
 | `message_shimmer` | `bool` | `True` | Enable message shimmer |
 | `progress_format` | `str` | `"fraction"` | Progress format style |
 | `timer_format` | `str` | `"auto"` | Timer format style |
@@ -655,6 +658,18 @@ The main orchestrator composes all 5 widgets into a single coordinated horizonta
 | `layout` | `str` | `"horizontal"` | Display orientation: `"horizontal"` or `"vertical"` |
 
 All parameters are keyword-only.
+
+ThothSpinnerWidget always manages five child widgets:
+
+- `spinner`: Animated activity indicator.
+- `message`: Rotating action-word message widget.
+- `progress`: Numeric progress display.
+- `timer`: Elapsed time display.
+- `hint`: Static helper text.
+
+The `message` widget is intentionally the rotating message component. Use
+`set_message()` to update the current rotating text, and `set_message_pinned()`
+when you explicitly want a non-rotating override.
 
 ### Configuration Hierarchy
 
@@ -738,11 +753,18 @@ Alias for `clear()`.
 
 #### Component Control
 
+`set_message()` keeps the message widget in rotating mode. Pinned
+non-rotating text is a separate, explicit API.
+
 ##### `update_progress(*, current: int, total: int | None = None) -> None`
 Update the progress component values.
 
-##### `set_message(*, text: str) -> None`
-Update the message component text.
+##### `set_message(*, text: str, restart_rotation: bool = False) -> None`
+Update the current rotating message text. Set `restart_rotation=True` to give
+that text a full fresh rotation interval before the next automatic word change.
+
+##### `set_message_pinned(*, text: str) -> None`
+Pin the message text so it does not rotate until another rotation API clears it.
 
 ##### `set_hint(*, text: str) -> None`
 Update the hint component text.
@@ -921,7 +943,7 @@ For a complete conversion guide, see [Rich to Textual Migration Guide](./rich_to
 ### Key Methods
 
 - State: `start()`, `success()`, `error()`, `reset()`, `clear()`, `stop()`
-- Progress: `update_progress()`, `set_message()`, `set_hint()`
+- Progress: `update_progress()`, `set_message()`, `set_message_pinned()`, `set_hint()`
 - Configuration: `from_dict()`, `from_config()`, `get_component()`, `update_component()`
 - Visibility: `show()`, `hide()`, `toggle()`, `set_visible()`
 

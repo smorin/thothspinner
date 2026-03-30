@@ -80,7 +80,8 @@ Features demonstrated:
 - Shimmer animation with configurable width and speed
 - `reverse_shimmer` direction toggle
 - `extend_action_words()` for dynamic word list management
-- `configure(text=..., trigger_new=True)` for custom text
+- `configure(text=..., restart_rotation=True)` for rotating text updates
+- `configure(pinned_text=...)` for explicit non-rotating text
 
 ---
 
@@ -95,7 +96,8 @@ uv run python examples/textual_orchestrator_demo.py
 Features demonstrated:
 - `start()` -> `update_progress()` -> `success()` workflow
 - `set_spinner_style()` runtime style change
-- `set_message()` dynamic message updates
+- `set_message()` rotating message updates
+- `set_message_pinned()` explicit non-rotating overrides
 - `set_shimmer_direction()` direction control
 - `error()` and `reset()` state management
 - Background work via `run_worker()`

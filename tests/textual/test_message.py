@@ -1,5 +1,7 @@
 """Comprehensive tests for the Textual MessageWidget."""
 
+from unittest.mock import patch
+
 import pytest
 from rich.text import Text
 from textual.app import App, ComposeResult
@@ -59,6 +61,19 @@ def test_initialization_custom():
     assert widget._shimmer_light_color == "#FFFFFF"
     assert widget._shimmer_speed == 2.0
     assert widget.reverse_shimmer is True
+
+
+def test_initial_text_is_shown_before_rotation():
+    """text initializes the first rotating message render."""
+    widget = MessageWidget(
+        action_words=["Rotating"],
+        shimmer={"enabled": False},
+        text="Initial",
+    )
+
+    with patch("thothspinner.textual.widgets.message.monotonic", side_effect=[0.0, 0.0]):
+        assert widget.render().plain == "Initial…"
+        assert widget.render().plain == "Rotating…"
 
 
 def test_initialization_hidden():
@@ -226,7 +241,75 @@ def test_configure_with_custom_text():
     widget = MessageWidget()
     widget.configure(text="CustomText")
     assert widget._current_word == "CustomText"
-    assert widget._last_word_change is None
+    assert widget._pinned_text is False
+
+
+def test_configure_custom_text_renders_once_then_rotation_resumes():
+    """A rotating message update should not pin the widget."""
+    widget = MessageWidget(
+        action_words=["Rotating"],
+        shimmer={"enabled": False},
+    )
+    widget.configure(text="CustomText")
+
+    with patch("thothspinner.textual.widgets.message.monotonic", side_effect=[0.0, 0.0]):
+        assert widget.render().plain == "CustomText…"
+        assert widget.render().plain == "Rotating…"
+
+
+def test_configure_custom_text_restart_rotation_delays_next_change():
+    """restart_rotation keeps the custom text visible for a fresh interval."""
+    widget = MessageWidget(
+        action_words=["Rotating"],
+        interval={"min": 0.5, "max": 0.5},
+        shimmer={"enabled": False},
+    )
+    widget.configure(text="CustomText", restart_rotation=True)
+
+    with patch("thothspinner.textual.widgets.message.monotonic", side_effect=[0.0, 0.3, 0.6]):
+        assert widget.render().plain == "CustomText…"
+        assert widget.render().plain == "CustomText…"
+        assert widget.render().plain == "Rotating…"
+
+
+def test_configure_pinned_text_persists():
+    """Pinned text should suppress rotation until explicitly cleared."""
+    widget = MessageWidget(
+        action_words=["Rotating"],
+        shimmer={"enabled": False},
+    )
+    widget.configure(pinned_text="Pinned")
+
+    with patch("thothspinner.textual.widgets.message.monotonic", side_effect=[0.0, 10.0]):
+        assert widget.render().plain == "Pinned…"
+        assert widget.render().plain == "Pinned…"
+
+    assert widget._pinned_text is True
+
+
+def test_configure_text_clears_pin():
+    """Rotating message updates should clear any active pin."""
+    widget = MessageWidget(
+        action_words=["Rotating"],
+        shimmer={"enabled": False},
+    )
+    widget.configure(pinned_text="Pinned")
+
+    widget.configure(text="CustomText")
+
+    assert widget._pinned_text is False
+    with patch("thothspinner.textual.widgets.message.monotonic", return_value=0.0):
+        assert widget.render().plain == "CustomText…"
+
+
+def test_trigger_new_clears_pin():
+    """trigger_new resumes rotation by clearing the pinned state."""
+    widget = MessageWidget(action_words=["Word1", "Word2"])
+    widget.configure(pinned_text="Pinned")
+
+    widget.configure(trigger_new=True)
+
+    assert widget._pinned_text is False
 
 
 def test_configure_trigger_new():
@@ -442,6 +525,21 @@ def test_from_config():
     assert widget._success_text == "OK"
     assert widget._error_text == "ERR"
     assert widget.display is False
+
+
+def test_from_config_initial_text():
+    """from_config should honor initial rotating text."""
+    widget = MessageWidget.from_config(
+        {
+            "action_words": ["Rotating"],
+            "shimmer": {"enabled": False},
+            "text": "Initial",
+        }
+    )
+
+    with patch("thothspinner.textual.widgets.message.monotonic", side_effect=[0.0, 0.0]):
+        assert widget.render().plain == "Initial…"
+        assert widget.render().plain == "Rotating…"
 
 
 def test_from_config_defaults():

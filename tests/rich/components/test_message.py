@@ -75,6 +75,17 @@ class TestMessageComponentInitialization:
         assert message.min_interval == 1.0
         assert message.max_interval == 5.0
 
+    def test_initial_text_is_shown_before_rotation(self):
+        """text initializes the first rotating message render."""
+        message = MessageComponent(
+            action_words=["Rotating"],
+            shimmer={"enabled": False},
+            text="Initial",
+        )
+
+        assert message._render_current_state(0.0).plain == "Initial…"
+        assert message._render_current_state(0.0).plain == "Rotating…"
+
     def test_shimmer_configuration(self):
         """Test shimmer configuration."""
         shimmer_config = {
@@ -110,6 +121,19 @@ class TestMessageComponentInitialization:
         assert message.color == "#FF0000"
         assert message.suffix == "!!!"
         assert message.visible is False
+
+    def test_from_config_initial_text(self):
+        """from_config should honor initial rotating text."""
+        message = MessageComponent.from_config(
+            {
+                "action_words": ["Rotating"],
+                "shimmer": {"enabled": False},
+                "text": "Initial",
+            }
+        )
+
+        assert message._render_current_state(0.0).plain == "Initial…"
+        assert message._render_current_state(0.0).plain == "Rotating…"
 
 
 class TestActionWordsManagement:
@@ -216,7 +240,68 @@ class TestWordRotation:
         message.configure(text="CustomText")
 
         assert message._current_word == "CustomText"
-        assert message._last_word_change is None  # Timer reset
+        assert message._pinned_text is False
+
+    def test_configure_custom_text_renders_once_then_rotation_resumes(self):
+        """A rotating message update should not pin the component."""
+        message = MessageComponent(
+            action_words=["Rotating"],
+            shimmer={"enabled": False},
+        )
+
+        message.configure(text="CustomText")
+
+        assert message._render_current_state(0.0).plain == "CustomText…"
+        assert message._render_current_state(0.0).plain == "Rotating…"
+
+    def test_configure_custom_text_restart_rotation_delays_next_change(self):
+        """restart_rotation keeps the custom text visible for a fresh interval."""
+        message = MessageComponent(
+            action_words=["Rotating"],
+            interval={"min": 0.5, "max": 0.5},
+            shimmer={"enabled": False},
+        )
+
+        message.configure(text="CustomText", restart_rotation=True)
+
+        assert message._render_current_state(0.0).plain == "CustomText…"
+        assert message._render_current_state(0.3).plain == "CustomText…"
+        assert message._render_current_state(0.6).plain == "Rotating…"
+
+    def test_configure_pinned_text_persists(self):
+        """Pinned text should suppress rotation until explicitly cleared."""
+        message = MessageComponent(
+            action_words=["Rotating"],
+            shimmer={"enabled": False},
+        )
+
+        message.configure(pinned_text="Pinned")
+
+        assert message._render_current_state(0.0).plain == "Pinned…"
+        assert message._render_current_state(10.0).plain == "Pinned…"
+        assert message._pinned_text is True
+
+    def test_configure_text_clears_pin(self):
+        """Rotating message updates should clear any active pin."""
+        message = MessageComponent(
+            action_words=["Rotating"],
+            shimmer={"enabled": False},
+        )
+        message.configure(pinned_text="Pinned")
+
+        message.configure(text="CustomText")
+
+        assert message._pinned_text is False
+        assert message._render_current_state(0.0).plain == "CustomText…"
+
+    def test_trigger_new_clears_pin(self):
+        """trigger_new resumes rotation by clearing the pinned state."""
+        message = MessageComponent(action_words=["Word1", "Word2"])
+        message.configure(pinned_text="Pinned")
+
+        message.configure(trigger_new=True)
+
+        assert message._pinned_text is False
 
     def test_configure_trigger_new_word(self):
         """Test configure method to trigger new word."""
@@ -445,6 +530,18 @@ class TestRichIntegration:
 
         assert measurement.minimum >= 0
         assert measurement.maximum <= options.max_width
+
+    def test_measure_uses_explicit_current_text(self):
+        """Measurement should account for longer explicit message text."""
+        message = MessageComponent(action_words=["Hi"])
+        message.configure(pinned_text="A much longer pinned message")
+        console = Console()
+        options = MagicMock()
+        options.max_width = 80
+
+        measurement = message.__rich_measure__(console, options)
+
+        assert measurement.maximum >= len("A much longer pinned message…")
 
     def test_invisible_component_rendering(self):
         """Test that invisible component doesn't render."""

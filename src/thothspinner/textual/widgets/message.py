@@ -60,6 +60,7 @@ class MessageWidget(Static):
         color: str = "#D97706",
         shimmer: dict[str, Any] | None = None,
         suffix: str = "…",
+        text: str | None = None,
         success_text: str = "Complete!",
         error_text: str = "Failed",
         visible: bool = True,
@@ -83,6 +84,7 @@ class MessageWidget(Static):
                 - speed (float): Shimmer movement speed (default 1.0)
                 - reverse (bool): Direction of shimmer (default False)
             suffix: Suffix to append to words.
+            text: Initial rotating message text to show before normal rotation resumes.
             success_text: Text shown in success state.
             error_text: Text shown in error state.
             visible: Whether the widget is initially visible.
@@ -143,6 +145,11 @@ class MessageWidget(Static):
         self._shimmer_start_time: float | None = None
         self._animation_timer: TextualTimer | None = None
         self._pinned_text: bool = False
+        self._manual_text_pending: bool = False
+        self._restart_rotation_on_next_render: bool = False
+
+        if text is not None:
+            self._set_rotating_text(text, restart_rotation=False)
 
         if not visible:
             self.display = False
@@ -257,6 +264,26 @@ class MessageWidget(Static):
         if len(self._used_words) > 5:
             self._used_words.pop(0)
 
+    def _clear_manual_text(self) -> None:
+        """Clear the one-frame rotating text override state."""
+        self._manual_text_pending = False
+        self._restart_rotation_on_next_render = False
+
+    def _set_rotating_text(self, text: str, *, restart_rotation: bool) -> None:
+        """Show ``text`` once while keeping this widget in rotating mode."""
+        self._current_word = text
+        self._pinned_text = False
+        self._manual_text_pending = True
+        self._restart_rotation_on_next_render = restart_rotation
+        self._shimmer_start_time = None
+
+    def _set_pinned_text(self, text: str) -> None:
+        """Pin ``text`` until another rotation-related API clears the pin."""
+        self._current_word = text
+        self._pinned_text = True
+        self._clear_manual_text()
+        self._shimmer_start_time = None
+
     # --- Shimmer effect ---
 
     def _apply_shimmer(self, text: str, current_time: float) -> Text:
@@ -302,7 +329,13 @@ class MessageWidget(Static):
         else:
             current_time = monotonic()
 
-            if self._calculate_next_word_change(current_time):
+            # set_message() updates the current rotating word for one render only.
+            if self._manual_text_pending:
+                if self._restart_rotation_on_next_render:
+                    self._last_word_change = current_time
+                    self._next_interval = random.uniform(self._min_interval, self._max_interval)
+                self._clear_manual_text()
+            elif self._calculate_next_word_change(current_time):
                 self._select_new_word()
                 self._shimmer_start_time = None
 
@@ -353,22 +386,28 @@ class MessageWidget(Static):
         self,
         *,
         text: str | None = None,
+        pinned_text: str | None = None,
+        restart_rotation: bool = False,
         trigger_new: bool = False,
         reverse_shimmer: bool | None = None,
     ) -> None:
         """Update component state.
 
         Args:
-            text: Custom text to display (overrides word rotation)
+            text: Update the current rotating message text without pinning it.
+            pinned_text: Pin a message so it remains visible until rotation resumes.
+            restart_rotation: Restart the rotation timer after showing ``text`` once.
             trigger_new: Force selection of new random word
             reverse_shimmer: Change shimmer direction
         """
         if text is not None:
-            self._current_word = text
-            self._shimmer_start_time = None
-            self._pinned_text = True
+            self._set_rotating_text(text, restart_rotation=restart_rotation)
+
+        if pinned_text is not None:
+            self._set_pinned_text(pinned_text)
 
         if trigger_new:
+            self._clear_manual_text()
             self._pinned_text = False
             self._select_new_word()
             self._shimmer_start_time = None
@@ -411,6 +450,7 @@ class MessageWidget(Static):
         self._shimmer_start_time = None
         self._used_words.clear()
         self._pinned_text = False
+        self._clear_manual_text()
         self._state = ComponentState.IN_PROGRESS
 
     def configure_state(self, state: ComponentState, *, color: str | None = None) -> None:
@@ -471,6 +511,7 @@ class MessageWidget(Static):
             color=config.get("color", "#D97706"),
             shimmer=config.get("shimmer"),
             suffix=config.get("suffix", "…"),
+            text=config.get("text"),
             success_text=config.get("success_text", "Complete!"),
             error_text=config.get("error_text", "Failed"),
             visible=config.get("visible", True),

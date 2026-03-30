@@ -39,7 +39,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
 
     Args:
         spinner_style: Built-in spinner style name. Defaults to "npm_dots".
-        message_text: Initial message text. Defaults to "Loading".
+        message_text: Initial rotating message text. Defaults to "Loading".
         message_shimmer: Enable shimmer effect on message. Defaults to True.
         progress_format: Progress display format. Defaults to "fraction".
         timer_format: Timer display format. Defaults to "auto".
@@ -250,7 +250,8 @@ class ThothSpinnerWidget(Widget, can_focus=False):
             )
         if kwargs.get("message_text"):
             msg = self._ensure_element_config(result, "message")
-            msg.setdefault("action_words", [kwargs["message_text"]])
+            # ``message_text`` seeds the first rotating message; pinning is a runtime choice.
+            msg.setdefault("text", kwargs["message_text"])
         if "message_shimmer" in kwargs:
             msg = self._ensure_element_config(result, "message")
             self._ensure_nested_config(msg, "message", "shimmer").setdefault(
@@ -764,14 +765,25 @@ class ThothSpinnerWidget(Widget, can_focus=False):
             progress.total = total  # type: ignore[union-attr]
         progress.set(current)  # type: ignore[union-attr]
 
-    def set_message(self, *, text: str) -> None:
-        """Update the message component text.
+    def set_message(self, *, text: str, restart_rotation: bool = False) -> None:
+        """Update the current rotating message text.
 
         Args:
             text: New message text to display.
+            restart_rotation: Restart the rotation timer after showing ``text`` once.
         """
         message = self._components["message"]
-        message.configure(text=text)  # type: ignore[union-attr]
+        # set_message() updates the active rotating message without pinning it.
+        message.configure(text=text, restart_rotation=restart_rotation)  # type: ignore[union-attr]
+
+    def set_message_pinned(self, *, text: str) -> None:
+        """Pin the message text so it does not rotate.
+
+        Args:
+            text: New pinned message text to display.
+        """
+        message = self._components["message"]
+        message.configure(pinned_text=text)  # type: ignore[union-attr]
 
     def set_hint(self, *, text: str) -> None:
         """Update the hint component text.

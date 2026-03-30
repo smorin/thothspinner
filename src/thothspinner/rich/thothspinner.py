@@ -60,7 +60,7 @@ class ThothSpinner:
 
     Args:
         spinner_style: Built-in spinner style name. Defaults to "npm_dots".
-        message_text: Initial message text. Defaults to "Loading".
+        message_text: Initial rotating message text. Defaults to "Loading".
         message_shimmer: Enable shimmer effect on message. Defaults to True.
         progress_format: Progress display format. Defaults to "percentage".
         timer_format: Timer display format. Defaults to "auto".
@@ -164,25 +164,28 @@ class ThothSpinner:
 
         # Apply kwargs as element configs (merge, don't replace)
         if kwargs.get("spinner_style"):
-            self._ensure_element_config(result, "spinner")["style"] = kwargs["spinner_style"]
+            self._ensure_element_config(result, "spinner").setdefault(
+                "style", kwargs["spinner_style"]
+            )
         if kwargs.get("message_text"):
             msg_config = self._ensure_element_config(result, "message")
-            msg_config["text"] = kwargs["message_text"]
-            self._ensure_nested_config(msg_config, "message", "shimmer")["enabled"] = kwargs.get(
-                "message_shimmer", True
+            # ``message_text`` seeds the first rotating message; pinning is a runtime choice.
+            msg_config.setdefault("text", kwargs["message_text"])
+            self._ensure_nested_config(msg_config, "message", "shimmer").setdefault(
+                "enabled", kwargs.get("message_shimmer", True)
             )
         if kwargs.get("progress_format"):
             prog_config = self._ensure_element_config(result, "progress")
-            self._ensure_nested_config(prog_config, "progress", "format")["style"] = kwargs[
-                "progress_format"
-            ]
+            self._ensure_nested_config(prog_config, "progress", "format").setdefault(
+                "style", kwargs["progress_format"]
+            )
         if kwargs.get("timer_format"):
             timer_config = self._ensure_element_config(result, "timer")
-            self._ensure_nested_config(timer_config, "timer", "format")["style"] = kwargs[
-                "timer_format"
-            ]
+            self._ensure_nested_config(timer_config, "timer", "format").setdefault(
+                "style", kwargs["timer_format"]
+            )
         if kwargs.get("hint_text"):
-            self._ensure_element_config(result, "hint")["text"] = kwargs["hint_text"]
+            self._ensure_element_config(result, "hint").setdefault("text", kwargs["hint_text"])
 
         return result
 
@@ -805,19 +808,40 @@ class ThothSpinner:
             except KeyError:
                 pass  # Component not found, silently ignore
 
-    def set_message(self, *, text: str) -> None:
-        """Update message component text.
+    def set_message(self, *, text: str, restart_rotation: bool = False) -> None:
+        """Update the current rotating message text.
 
         Thread-safe. Silently ignored if message component is not found.
+        The message component remains a rotating message; use
+        ``set_message_pinned()`` for a non-rotating override.
 
         Args:
             text: New message text to display.
+            restart_rotation: Restart the rotation timer after showing ``text`` once.
         """
         with self._lock:
             try:
                 message = self.get_component("message")
                 if hasattr(message, "configure"):
-                    message.configure(text=text)
+                    message.configure(text=text, restart_rotation=restart_rotation)
+            except KeyError:
+                pass
+
+    def set_message_pinned(self, *, text: str) -> None:
+        """Pin the message text so it does not rotate.
+
+        Thread-safe. Silently ignored if the message component is not found.
+        This is intentionally separate from ``set_message()`` so the rotating
+        message API remains explicit.
+
+        Args:
+            text: New pinned message text to display.
+        """
+        with self._lock:
+            try:
+                message = self.get_component("message")
+                if hasattr(message, "configure"):
+                    message.configure(pinned_text=text)
             except KeyError:
                 pass
 

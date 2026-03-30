@@ -97,13 +97,16 @@ progress = ProgressComponent(format={"style": "percentage"}, color="#00FF00")
 # Or use the orchestrator for everything
 spinner = ThothSpinner(
     spinner_style="npm_dots",
-    message_text="Processing data",
+    message_text="Processing data",  # initial rotating message text
     message_shimmer=True,
     progress_format="percentage",
     timer_format="auto",
     hint_text="(esc to cancel)"
 )
 ```
+
+`set_message()` updates the current rotating message text. Use
+`set_message_pinned()` only when you explicitly want a non-rotating message.
 
 ### Configuration
 
@@ -225,7 +228,7 @@ with Live(spinner) as live:
     spinner.start()
     
     for i, file in enumerate(files):
-        spinner.set_message(text=f"Processing {file.name}")
+        spinner.set_message(text=f"Processing {file.name}")  # rotating message update
         spinner.update_progress(current=i, total=len(files))
         process_file(file)
     

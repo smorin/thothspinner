@@ -42,6 +42,7 @@ class TestThothSpinnerInitialization:
         assert spinner.error_duration == 3.0
         assert "spinner" in spinner._components
         assert "message" in spinner._components
+        assert spinner.get_component("message")._current_word == "Testing"
 
     def test_config_dict_initialization(self):
         """Test initialization with config dictionary."""
@@ -52,6 +53,7 @@ class TestThothSpinnerInitialization:
         spinner = ThothSpinner(**config)
         assert "spinner" in spinner._components
         assert "message" in spinner._components
+        assert spinner.get_component("message")._render_current_state(0.0).plain == "From config…"
 
     def test_from_dict_classmethod(self):
         """Test from_dict class method."""
@@ -368,12 +370,59 @@ class TestComponentControl:
 
     def test_set_message(self):
         """Test set_message method."""
-        spinner = ThothSpinner()
+        spinner = ThothSpinner(
+            elements={
+                "message": {
+                    "action_words": ["Rotating"],
+                    "interval": {"min": 0.5, "max": 0.5},
+                    "shimmer": {"enabled": False},
+                }
+            }
+        )
         spinner.set_message(text="New message")
 
-        # Message component should be updated
-        spinner.get_component("message")
-        # The actual update depends on MessageComponent implementation
+        message = spinner.get_component("message")
+        assert message._render_current_state(0.0).plain == "New message…"
+        assert message._render_current_state(0.0).plain == "Rotating…"
+
+    def test_set_message_restart_rotation(self):
+        """set_message can restart the rotation timer when requested."""
+        spinner = ThothSpinner(
+            elements={
+                "message": {
+                    "action_words": ["Rotating"],
+                    "interval": {"min": 0.5, "max": 0.5},
+                    "shimmer": {"enabled": False},
+                }
+            }
+        )
+
+        spinner.set_message(text="New message", restart_rotation=True)
+
+        message = spinner.get_component("message")
+        assert message._render_current_state(0.0).plain == "New message…"
+        assert message._render_current_state(0.3).plain == "New message…"
+        assert message._render_current_state(0.6).plain == "Rotating…"
+
+    def test_set_message_pinned(self):
+        """set_message_pinned pins the message until another API clears it."""
+        spinner = ThothSpinner(
+            elements={
+                "message": {
+                    "action_words": ["Rotating"],
+                    "shimmer": {"enabled": False},
+                }
+            }
+        )
+
+        spinner.set_message_pinned(text="Pinned")
+
+        message = spinner.get_component("message")
+        assert message._render_current_state(0.0).plain == "Pinned…"
+        assert message._render_current_state(10.0).plain == "Pinned…"
+
+        spinner.set_message(text="Rotating now")
+        assert message._render_current_state(10.0).plain == "Rotating now…"
 
     def test_set_hint(self):
         """Test set_hint method."""

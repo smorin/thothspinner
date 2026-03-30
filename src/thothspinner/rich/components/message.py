@@ -169,6 +169,8 @@ class MessageComponent:
         shimmer: dict[str, Any] | None = None,
         suffix: str = "…",
         visible: bool = True,
+        *,
+        text: str | None = None,
         **kwargs: Any,
     ) -> None:
         """Initialize the MessageComponent.
@@ -188,6 +190,7 @@ class MessageComponent:
                 - reverse (bool): Direction of shimmer
             suffix: Suffix to append to words. Defaults to "…".
             visible: Whether to render the component. Defaults to True.
+            text: Initial rotating message text to show before normal rotation resumes.
             **kwargs: Additional keyword arguments (reserved for future use).
         """
         # Initialize word list
@@ -243,6 +246,12 @@ class MessageComponent:
         self._cached_terminal_render: tuple[tuple, Text] | None = None
         self._success_color = COLOR_SUCCESS
         self._error_color = COLOR_ERROR
+        self._pinned_text = False
+        self._manual_text_pending = False
+        self._restart_rotation_on_next_render = False
+
+        if text is not None:
+            self._set_rotating_text(text, restart_rotation=False)
 
     @property
     def state(self) -> ComponentState:
@@ -295,22 +304,29 @@ class MessageComponent:
         self,
         *,
         text: str | None = None,
+        pinned_text: str | None = None,
+        restart_rotation: bool = False,
         trigger_new: bool = False,
         reverse_shimmer: bool | None = None,
     ) -> None:
         """Configure component properties.
 
         Args:
-            text: Custom text to display (overrides word rotation)
+            text: Update the current rotating message text without pinning it.
+            pinned_text: Pin a message so it remains visible until rotation resumes.
+            restart_rotation: Restart the rotation timer after showing ``text`` once.
             trigger_new: Force selection of new random word
             reverse_shimmer: Change shimmer direction
         """
         if text is not None:
-            self._current_word = text
-            self._last_word_change = None  # Reset timer
-            self._shimmer_start_time = None  # Reset shimmer
+            self._set_rotating_text(text, restart_rotation=restart_rotation)
+
+        if pinned_text is not None:
+            self._set_pinned_text(pinned_text)
 
         if trigger_new:
+            self._clear_manual_text()
+            self._pinned_text = False
             self._select_new_word()
             self._last_word_change = None  # Reset timer
             self._shimmer_start_time = None  # Reset shimmer
@@ -351,6 +367,8 @@ class MessageComponent:
         self._shimmer_start_time = None
         self._used_words.clear()
         self._cached_terminal_render = None
+        self._pinned_text = False
+        self._clear_manual_text()
 
     def configure_state(self, state: ComponentState, *, color: str | None = None) -> None:
         """Update terminal-state color overrides."""
@@ -381,6 +399,28 @@ class MessageComponent:
         if len(self._used_words) > WORD_HISTORY_SIZE:
             self._used_words.pop(0)
 
+    def _clear_manual_text(self) -> None:
+        """Clear the one-frame rotating text override state."""
+        self._manual_text_pending = False
+        self._restart_rotation_on_next_render = False
+
+    def _set_rotating_text(self, text: str, *, restart_rotation: bool) -> None:
+        """Show ``text`` once while keeping this component in rotating mode."""
+        self._current_word = text
+        self._pinned_text = False
+        self._manual_text_pending = True
+        self._restart_rotation_on_next_render = restart_rotation
+        self._shimmer_start_time = None
+        self._cached_terminal_render = None
+
+    def _set_pinned_text(self, text: str) -> None:
+        """Pin ``text`` until another rotation-related API clears the pin."""
+        self._current_word = text
+        self._pinned_text = True
+        self._clear_manual_text()
+        self._shimmer_start_time = None
+        self._cached_terminal_render = None
+
     def _calculate_next_word_change(self, current_time: float) -> bool:
         """Determine if word should change based on elapsed time.
 
@@ -390,6 +430,9 @@ class MessageComponent:
         Returns:
             True if word should change, False otherwise
         """
+        if self._pinned_text:
+            return False
+
         if self._last_word_change is None:
             self._last_word_change = current_time
             self._next_interval = random.uniform(self.min_interval, self.max_interval)
@@ -452,9 +495,13 @@ class MessageComponent:
         elif self._state == ComponentState.ERROR:
             return Text(self._static_text, style=Style(color=self._error_color))
         else:
-            # In progress state - rotating words with optional shimmer
-            # Check if word needs to change
-            if self._calculate_next_word_change(current_time):
+            # set_message() updates the current rotating word for one render only.
+            if self._manual_text_pending:
+                if self._restart_rotation_on_next_render:
+                    self._last_word_change = current_time
+                    self._next_interval = random.uniform(self.min_interval, self.max_interval)
+                self._clear_manual_text()
+            elif self._calculate_next_word_change(current_time):
                 self._select_new_word()
                 self._shimmer_start_time = None  # Reset shimmer on word change
 
@@ -517,7 +564,10 @@ class MessageComponent:
         if self._state != ComponentState.IN_PROGRESS:
             text = Text(self._static_text)
         else:
-            longest_word = max(self._action_words, key=len) if self._action_words else ""
+            candidate_words = self._action_words.copy()
+            if self._current_word:
+                candidate_words.append(self._current_word)
+            longest_word = max(candidate_words, key=len) if candidate_words else ""
             text = Text(longest_word + self.suffix)
 
         return Measurement.get(console, options, text)
@@ -546,4 +596,5 @@ class MessageComponent:
             shimmer=config.get("shimmer"),
             suffix=config.get("suffix", "…"),
             visible=config.get("visible", True),
+            text=config.get("text"),
         )
