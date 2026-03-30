@@ -68,6 +68,31 @@ class TestThothSpinnerInitialization:
         with pytest.raises(KeyError, match="Invalid component type"):
             ThothSpinner(**config)
 
+    def test_invalid_element_config_on_construction(self):
+        """Malformed element configs should fail before child construction."""
+        with pytest.raises(ValueError, match=r"elements\.spinner must be a dict"):
+            ThothSpinner(elements={"spinner": "not_a_dict"})
+
+    def test_invalid_message_shimmer_config_on_construction(self):
+        """Malformed nested message config should fail early."""
+        with pytest.raises(ValueError, match=r"elements\.message\.shimmer must be a dict"):
+            ThothSpinner(elements={"message": {"shimmer": "bad"}})
+
+    def test_invalid_progress_format_config_on_construction(self):
+        """Malformed nested progress config should fail early."""
+        with pytest.raises(ValueError, match=r"elements\.progress\.format must be a dict"):
+            ThothSpinner(elements={"progress": {"format": "bad"}})
+
+    def test_invalid_timer_format_config_on_construction(self):
+        """Malformed nested timer config should fail early."""
+        with pytest.raises(ValueError, match=r"elements\.timer\.format must be a dict"):
+            ThothSpinner(elements={"timer": {"format": "bad"}})
+
+    def test_invalid_element_config_from_dict(self):
+        """from_dict should use the same constructor validation path."""
+        with pytest.raises(ValueError, match=r"elements\.spinner must be a dict"):
+            ThothSpinner.from_dict({"elements": {"spinner": "not_a_dict"}})
+
     def test_thread_safety(self):
         """Test ThothSpinner has thread lock."""
         spinner = ThothSpinner()

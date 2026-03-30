@@ -223,48 +223,120 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         # Merge user config dict first
         if config_dict:
             if "defaults" in config_dict:
+                self._require_dict(config_dict["defaults"], "defaults")
                 result["defaults"].update(config_dict["defaults"])
             if "elements" in config_dict:
+                self._require_dict(config_dict["elements"], "elements")
                 result["elements"].update(config_dict["elements"])
             if "render_order" in config_dict:
                 result["render_order"] = config_dict["render_order"]
             if "states" in config_dict:
+                self._require_dict(config_dict["states"], "states")
                 result["states"].update(config_dict["states"])
             if "durations" in config_dict:
                 durations = config_dict["durations"]
+                self._require_dict(durations, "durations")
                 if "success" in durations and durations["success"] is not None:
                     self.success_duration = self.success_duration or durations["success"]
                 if "error" in durations and durations["error"] is not None:
                     self.error_duration = self.error_duration or durations["error"]
 
+        result = self._validate_config(result)
+
         # Apply kwargs as element configs (setdefault so config dict takes priority)
-        elements = result["elements"]
         if kwargs.get("spinner_style"):
-            elements.setdefault("spinner", {}).setdefault("style", kwargs["spinner_style"])
+            self._ensure_element_config(result, "spinner").setdefault(
+                "style", kwargs["spinner_style"]
+            )
         if kwargs.get("message_text"):
-            msg = elements.setdefault("message", {})
+            msg = self._ensure_element_config(result, "message")
             msg.setdefault("action_words", [kwargs["message_text"]])
         if "message_shimmer" in kwargs:
-            msg = elements.setdefault("message", {})
-            msg.setdefault("shimmer", {}).setdefault("enabled", kwargs["message_shimmer"])
+            msg = self._ensure_element_config(result, "message")
+            self._ensure_nested_config(msg, "message", "shimmer").setdefault(
+                "enabled", kwargs["message_shimmer"]
+            )
         if kwargs.get("progress_format"):
-            elements.setdefault("progress", {}).setdefault(
+            self._ensure_element_config(result, "progress").setdefault(
                 "format_style", kwargs["progress_format"]
             )
         if kwargs.get("timer_format"):
-            elements.setdefault("timer", {}).setdefault("format_style", kwargs["timer_format"])
+            self._ensure_element_config(result, "timer").setdefault(
+                "format_style", kwargs["timer_format"]
+            )
         if kwargs.get("hint_text"):
-            elements.setdefault("hint", {}).setdefault("text", kwargs["hint_text"])
+            self._ensure_element_config(result, "hint").setdefault("text", kwargs["hint_text"])
 
-        # Validate element keys
-        for component_type in elements:
+        return result
+
+    def _validate_config(self, config: dict[str, Any]) -> dict[str, Any]:
+        """Validate configuration structure before creating child widgets."""
+        defaults = config.get("defaults")
+        if defaults is not None:
+            self._require_dict(defaults, "defaults")
+
+        elements = config.get("elements")
+        if elements is None:
+            config["elements"] = {}
+            elements = config["elements"]
+        else:
+            self._require_dict(elements, "elements")
+
+        states = config.get("states")
+        if states is None:
+            config["states"] = {}
+        else:
+            self._require_dict(states, "states")
+
+        durations = config.get("durations")
+        if durations is not None:
+            self._require_dict(durations, "durations")
+
+        for component_type, element_config in elements.items():
             if component_type not in self.VALID_COMPONENTS:
                 raise KeyError(
                     f"Invalid component type: {component_type}. "
                     f"Valid types: {list(self.VALID_COMPONENTS)}"
                 )
 
-        return result
+            validated_element_config = self._require_dict(
+                element_config, f"elements.{component_type}"
+            )
+            nested_paths = {
+                "message": ("shimmer",),
+                "progress": ("format",),
+                "timer": ("format",),
+            }
+            for nested_key in nested_paths.get(component_type, ()):
+                if nested_key in validated_element_config:
+                    self._require_dict(
+                        validated_element_config[nested_key],
+                        f"elements.{component_type}.{nested_key}",
+                    )
+
+        return config
+
+    def _ensure_element_config(self, config: dict[str, Any], component_type: str) -> dict[str, Any]:
+        """Return a mutable element config dict, validating the structure first."""
+        elements = self._require_dict(config.setdefault("elements", {}), "elements")
+        return self._require_dict(
+            elements.setdefault(component_type, {}), f"elements.{component_type}"
+        )
+
+    def _ensure_nested_config(
+        self, element_config: dict[str, Any], component_type: str, nested_key: str
+    ) -> dict[str, Any]:
+        """Return a mutable nested config dict under an element config."""
+        return self._require_dict(
+            element_config.setdefault(nested_key, {}),
+            f"elements.{component_type}.{nested_key}",
+        )
+
+    def _require_dict(self, value: Any, path: str) -> dict[str, Any]:
+        """Require a dict value for config validation and mutation."""
+        if not isinstance(value, dict):
+            raise ValueError(f"{path} must be a dict, got {type(value).__name__}")
+        return value
 
     def _validate_render_order(self, order: list[str]) -> None:
         """Validate render order contains only valid component names.

@@ -160,31 +160,29 @@ class ThothSpinner:
         if config_dict:
             result.update(config_dict)
 
+        result = self._validate_config(result)
+
         # Apply kwargs as element configs (merge, don't replace)
         if kwargs.get("spinner_style"):
-            result.setdefault("elements", {}).setdefault("spinner", {})["style"] = kwargs[
-                "spinner_style"
-            ]
+            self._ensure_element_config(result, "spinner")["style"] = kwargs["spinner_style"]
         if kwargs.get("message_text"):
-            msg_config = result.setdefault("elements", {}).setdefault("message", {})
+            msg_config = self._ensure_element_config(result, "message")
             msg_config["text"] = kwargs["message_text"]
-            msg_config.setdefault("shimmer", {})["enabled"] = kwargs.get("message_shimmer", True)
+            self._ensure_nested_config(msg_config, "message", "shimmer")["enabled"] = kwargs.get(
+                "message_shimmer", True
+            )
         if kwargs.get("progress_format"):
-            prog_config = result.setdefault("elements", {}).setdefault("progress", {})
-            prog_config.setdefault("format", {})["style"] = kwargs["progress_format"]
+            prog_config = self._ensure_element_config(result, "progress")
+            self._ensure_nested_config(prog_config, "progress", "format")["style"] = kwargs[
+                "progress_format"
+            ]
         if kwargs.get("timer_format"):
-            timer_config = result.setdefault("elements", {}).setdefault("timer", {})
-            timer_config.setdefault("format", {})["style"] = kwargs["timer_format"]
+            timer_config = self._ensure_element_config(result, "timer")
+            self._ensure_nested_config(timer_config, "timer", "format")["style"] = kwargs[
+                "timer_format"
+            ]
         if kwargs.get("hint_text"):
-            result.setdefault("elements", {}).setdefault("hint", {})["text"] = kwargs["hint_text"]
-
-        # Validate component types
-        valid_types = set(self._render_order)
-        for component_type in result.get("elements", {}):
-            if component_type not in valid_types:
-                raise KeyError(
-                    f"Invalid component type: {component_type}. Valid types: {valid_types}"
-                )
+            self._ensure_element_config(result, "hint")["text"] = kwargs["hint_text"]
 
         return result
 
@@ -266,6 +264,10 @@ class ThothSpinner:
 
         Uses TypedDict for hints but accepts plain dicts.
         """
+        defaults = config.get("defaults")
+        if defaults is not None:
+            self._require_dict(defaults, "defaults")
+
         # Ensure defaults exist
         if "defaults" not in config:
             config["defaults"] = {
@@ -275,9 +277,19 @@ class ThothSpinner:
                 "error": {"color": COLOR_ERROR, "behavior": "indicator"},
             }
 
+        states = config.get("states")
+        if states is not None:
+            self._require_dict(states, "states")
+
+        durations = config.get("durations")
+        if durations is not None:
+            self._require_dict(durations, "durations")
+
         # Ensure elements dict exists
         if "elements" not in config:
             config["elements"] = {}
+        else:
+            self._require_dict(config["elements"], "elements")
 
         # Validate component types in elements
         valid_components = set(self._render_order)
@@ -290,8 +302,15 @@ class ThothSpinner:
 
         # Validate element configs are dicts
         for key, value in config["elements"].items():
-            if not isinstance(value, dict):
-                raise ValueError(f"Element config for {key} must be a dict, got {type(value)}")
+            element_config = self._require_dict(value, f"elements.{key}")
+            nested_paths = {
+                "message": ("shimmer",),
+                "progress": ("format",),
+                "timer": ("format",),
+            }
+            for nested_key in nested_paths.get(key, ()):
+                if nested_key in element_config:
+                    self._require_dict(element_config[nested_key], f"elements.{key}.{nested_key}")
 
         # Validate render_order if provided
         if "render_order" in config:
@@ -303,6 +322,28 @@ class ThothSpinner:
             self._render_order = tuple(order)
 
         return config
+
+    def _ensure_element_config(self, config: dict[str, Any], component_type: str) -> dict[str, Any]:
+        """Return a mutable element config dict, validating the structure first."""
+        elements = self._require_dict(config.setdefault("elements", {}), "elements")
+        return self._require_dict(
+            elements.setdefault(component_type, {}), f"elements.{component_type}"
+        )
+
+    def _ensure_nested_config(
+        self, element_config: dict[str, Any], component_type: str, nested_key: str
+    ) -> dict[str, Any]:
+        """Return a mutable nested config dict under an element config."""
+        return self._require_dict(
+            element_config.setdefault(nested_key, {}),
+            f"elements.{component_type}.{nested_key}",
+        )
+
+    def _require_dict(self, value: Any, path: str) -> dict[str, Any]:
+        """Require a dict value for config validation and mutation."""
+        if not isinstance(value, dict):
+            raise ValueError(f"{path} must be a dict, got {type(value).__name__}")
+        return value
 
     def _create_all_components(self) -> None:
         """Eagerly create all 5 components on initialization.
