@@ -209,7 +209,22 @@ just typecheck
 # Run tests with coverage
 just test-cov
 
-# Run all checks
+# Security scan (bandit)
+just security
+
+# Generate changelog (git-cliff)
+just changelog
+
+# Version management
+just current-version
+just bump-patch
+just bump-minor
+just bump-major
+
+# Regenerate visual regression snapshots
+just update-snapshots
+
+# Run all checks (format, lint, typecheck, security, test)
 just all
 
 # Clean build artifacts
@@ -218,7 +233,7 @@ just clean
 
 ### Testing
 
-The project maintains 97%+ test coverage:
+The project maintains 97%+ test coverage, including visual regression tests via `pytest-textual-snapshot`:
 
 ```bash
 # Run tests
@@ -230,6 +245,9 @@ just test-cov
 
 # Run specific test file
 just test tests/rich/test_spinner.py
+
+# Regenerate visual regression snapshots (Textual widgets)
+just update-snapshots
 ```
 
 ## 📖 Examples
@@ -307,12 +325,10 @@ More examples in the [Examples Gallery](docs/examples/README.md).
 - Bar format style for Textual ProgressWidget with configurable fill characters
 - Smooth animated transitions when progress values change
 
-### Upcoming
-
-- **M14: Publishing to PyPI** (v1.0.0)
-  - PyPI package publication
-  - GitHub Actions CI/CD
-  - Release automation
+✅ **M14: Publishing to PyPI** (v1.0.0)
+- PyPI package publication with OIDC trusted publishing
+- GitHub Actions CI/CD pipeline (test matrix, CodeQL, publish)
+- Release automation with git-cliff changelog generation
 
 ### Releasing
 
@@ -321,13 +337,14 @@ More examples in the [Examples Gallery](docs/examples/README.md).
 For subsequent releases, see the **[Release Guide](RELEASE.md)**. Quick reference:
 
 ```bash
-# 1. Bump version in pyproject.toml, update CHANGELOG.md, then:
-just all                 # format, lint, typecheck, test — must all pass
-git add pyproject.toml CHANGELOG.md
+# 1. Bump version (pick one), then run checks and commit:
+just bump-patch          # or bump-minor / bump-major
+just all                 # format, lint, typecheck, security, test — must all pass
+git add pyproject.toml
 git commit -m "chore: release v1.2.3"
 git push origin main
 
-# 2. Tag and publish (triggers GitHub Actions → TestPyPI → PyPI)
+# 2. Tag and publish (auto-generates changelog, builds, tags, pushes → triggers CI → PyPI)
 just release 1.2.3
 ```
 
@@ -335,7 +352,7 @@ Releases are published automatically via OIDC trusted publishing — no API toke
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please:
+Contributions are welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for full details. Quick summary:
 
 1. Check the [MILESTONES.md](MILESTONES.md) for current tasks
 2. Follow the established code patterns
@@ -345,6 +362,10 @@ Contributions are welcome! Please:
 6. Update documentation as needed
 
 For milestone-specific work, reference tasks in the milestone documents (M01.md, M02.md, etc.).
+
+### Zero-Setup with GitHub Codespaces
+
+A `.devcontainer` config is included — open in Codespaces or VS Code Dev Containers for an instant, pre-configured development environment.
 
 ## 📄 License
 
