@@ -1,7 +1,9 @@
 """Timer component for ThothSpinner."""
 
+from __future__ import annotations
+
 from time import time
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.measure import Measurement
@@ -51,7 +53,7 @@ class TimerComponent(BaseComponent):
         super().__init__(color)
         self.visible = visible
         self.format = format or {"style": "auto"}
-        self.format_style: TimerFormat = self.format.get("style", "auto")
+        self.format_style: TimerFormat = cast(TimerFormat, self.format.get("style", "auto"))
         self.precision = self.format.get("precision", precision)
         self._start_time: float | None = None
         self._elapsed: float = 0.0
@@ -194,7 +196,7 @@ class TimerComponent(BaseComponent):
 
         style = Style(color=config.color) if config.color else self._style
         text = config.text if config.text is not None else self._format_time(elapsed)
-        return Text(text, style=style)
+        return Text(text, style=style or "")
 
     def __rich_measure__(self, console: Console, options: ConsoleOptions) -> Measurement:
         """Measure the timer component width for layout."""

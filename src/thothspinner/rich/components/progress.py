@@ -1,6 +1,8 @@
 """Progress component for ThothSpinner."""
 
-from typing import Any, Literal
+from __future__ import annotations
+
+from typing import Any, Literal, cast
 
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.measure import Measurement
@@ -48,7 +50,7 @@ class ProgressComponent(BaseComponent):
         self.current = current
         self.total = total
         self.format = format or {"style": "fraction"}
-        self.format_style: FormatStyle = self.format.get("style", "fraction")
+        self.format_style: FormatStyle = cast(FormatStyle, self.format.get("style", "fraction"))
         self.zero_pad = zero_pad
         self._state = ComponentState.IN_PROGRESS
         self._state_configs = self._get_default_state_configs()
@@ -105,7 +107,7 @@ class ProgressComponent(BaseComponent):
         from rich.style import Style
 
         style = Style(color=config.color) if config.color else self._style
-        return Text(self._format_progress(), style=style)
+        return Text(self._format_progress(), style=style or "")
 
     def __rich_measure__(self, console: Console, options: ConsoleOptions) -> Measurement:
         """Measure the progress component width for layout."""

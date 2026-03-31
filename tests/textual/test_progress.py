@@ -294,7 +294,6 @@ def test_reset():
     assert widget.current == 0
 
 
-@pytest.mark.asyncio
 async def test_state_css_classes():
     """Test CSS classes are set correctly on state changes."""
 
@@ -325,7 +324,6 @@ async def test_state_css_classes():
 
 
 # Test reactivity
-@pytest.mark.asyncio
 async def test_reactivity():
     """Test reactive updates trigger re-renders."""
 
@@ -348,7 +346,6 @@ async def test_reactivity():
 
 
 # Test visibility
-@pytest.mark.asyncio
 async def test_visibility_toggle():
     """Test CSS class-based visibility changes."""
 
@@ -466,7 +463,6 @@ def test_css_defaults():
 
 
 # Integration test
-@pytest.mark.asyncio
 async def test_app_integration():
     """Test widget in full Textual app lifecycle."""
 
@@ -505,7 +501,6 @@ async def test_app_integration():
         assert p2.current == 0
 
 
-@pytest.mark.asyncio
 async def test_widget_lifecycle():
     """Test widget mount/unmount lifecycle."""
 
@@ -618,7 +613,6 @@ def test_bar_format_from_config():
     assert widget._format_progress() == "#####-----"
 
 
-@pytest.mark.asyncio
 async def test_bar_format_reactivity():
     """Test bar format updates when current changes."""
 
@@ -686,7 +680,6 @@ def test_easing_ease_in_out():
     assert ProgressWidget._ease_in_out(1.0) == 1.0
 
 
-@pytest.mark.asyncio
 async def test_animate_true_smooth_transitions():
     """Test animate=True creates timer and smoothly transitions display value."""
 
@@ -713,7 +706,6 @@ async def test_animate_true_smooth_transitions():
         assert progress._display_current < 100.0
 
 
-@pytest.mark.asyncio
 async def test_rapid_updates_interrupt_animation():
     """Test that a second set() before animation completes updates the target."""
 
@@ -742,7 +734,6 @@ async def test_rapid_updates_interrupt_animation():
         assert progress._animation_target_value == 80.0
 
 
-@pytest.mark.asyncio
 async def test_state_transition_cancels_animation():
     """Test that success()/error() cancels a running animation."""
 
@@ -769,7 +760,6 @@ async def test_state_transition_cancels_animation():
         assert progress.render().plain == "100%"
 
 
-@pytest.mark.asyncio
 async def test_reset_cancels_animation_and_jumps_to_zero():
     """Test that reset() cancels animation and immediately sets display to 0."""
 

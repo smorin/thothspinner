@@ -534,7 +534,6 @@ def test_css_defaults():
 
 
 # Async tests with Textual app
-@pytest.mark.asyncio
 async def test_timer_start_stop():
     """Test timer start/stop in app context."""
 
@@ -559,7 +558,6 @@ async def test_timer_start_stop():
         assert timer.get_elapsed() == frozen
 
 
-@pytest.mark.asyncio
 async def test_timer_pause_resume():
     """Test timer pause/resume in app context."""
 
@@ -586,7 +584,6 @@ async def test_timer_pause_resume():
         assert not timer.paused
 
 
-@pytest.mark.asyncio
 async def test_timer_display_updates():
     """Test that render output reflects elapsed time."""
 
@@ -604,7 +601,6 @@ async def test_timer_display_updates():
         assert rendered.endswith("s")
 
 
-@pytest.mark.asyncio
 async def test_state_css_classes():
     """Test CSS classes are set correctly on state changes."""
 
@@ -634,7 +630,6 @@ async def test_state_css_classes():
         assert "success" not in timer.classes
 
 
-@pytest.mark.asyncio
 async def test_visibility_toggle():
     """Test display property-based visibility changes."""
 
@@ -664,7 +659,6 @@ async def test_visibility_toggle():
         assert timer.display is True
 
 
-@pytest.mark.asyncio
 async def test_app_integration():
     """Test widget in full Textual app lifecycle."""
 
@@ -702,7 +696,6 @@ async def test_app_integration():
         assert t2.state == ComponentState.IN_PROGRESS
 
 
-@pytest.mark.asyncio
 async def test_widget_lifecycle():
     """Test widget mount/unmount lifecycle."""
 

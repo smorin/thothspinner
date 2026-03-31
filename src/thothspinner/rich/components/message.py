@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import random
 import time
-from typing import Any
+from typing import Any, cast
 
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.measure import Measurement
@@ -567,7 +567,7 @@ class MessageComponent:
             candidate_words = self._action_words.copy()
             if self._current_word:
                 candidate_words.append(self._current_word)
-            longest_word = max(candidate_words, key=len) if candidate_words else ""
+            longest_word = cast(str, max(candidate_words, key=len)) if candidate_words else ""
             text = Text(longest_word + self.suffix)
 
         return Measurement.get(console, options, text)

@@ -1,5 +1,7 @@
 """Textual components for ThothSpinner."""
 
+from __future__ import annotations
+
 from .widgets import (
     HintWidget,
     MessageWidget,

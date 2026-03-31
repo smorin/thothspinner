@@ -633,7 +633,6 @@ def test_empty_action_words_recovery():
 
 
 # Async tests with Textual app
-@pytest.mark.asyncio
 async def test_animation_starts_on_mount():
     """Test that animation timer starts when mounted."""
 
@@ -647,7 +646,6 @@ async def test_animation_starts_on_mount():
         await pilot.pause()
 
 
-@pytest.mark.asyncio
 async def test_word_rotation_in_app():
     """Test that word rotation happens in app context."""
 
@@ -667,7 +665,6 @@ async def test_word_rotation_in_app():
         assert rendered.plain in ["Word1…", "Word2…"]
 
 
-@pytest.mark.asyncio
 async def test_state_css_classes():
     """Test CSS classes are set correctly on state changes."""
 
@@ -697,7 +694,6 @@ async def test_state_css_classes():
         assert "success" not in msg.classes
 
 
-@pytest.mark.asyncio
 async def test_visibility_toggle():
     """Test display property-based visibility changes."""
 
@@ -727,7 +723,6 @@ async def test_visibility_toggle():
         assert msg.display is True
 
 
-@pytest.mark.asyncio
 async def test_app_integration():
     """Test widget in full Textual app lifecycle."""
 
@@ -767,7 +762,6 @@ async def test_app_integration():
         assert m2.state == ComponentState.IN_PROGRESS
 
 
-@pytest.mark.asyncio
 async def test_widget_lifecycle():
     """Test widget mount/unmount lifecycle."""
 
@@ -787,7 +781,6 @@ async def test_widget_lifecycle():
         assert msg not in pilot.app.query(MessageWidget)
 
 
-@pytest.mark.asyncio
 async def test_success_stops_animation():
     """Test that success() stops the animation timer."""
 
@@ -805,7 +798,6 @@ async def test_success_stops_animation():
         assert not msg._animation_timer._active.is_set()
 
 
-@pytest.mark.asyncio
 async def test_error_stops_animation():
     """Test that error() stops the animation timer."""
 
@@ -823,7 +815,6 @@ async def test_error_stops_animation():
         assert not msg._animation_timer._active.is_set()
 
 
-@pytest.mark.asyncio
 async def test_reset_restarts_animation():
     """Test that reset() restarts the animation timer."""
 

@@ -323,9 +323,9 @@ class MessageWidget(Static):
     def render(self) -> Text:
         """Render the message widget."""
         if self._state == ComponentState.SUCCESS:
-            return Text(self._success_text, style=self._success_color)
+            return Text(self._success_text, style=self._success_color or "")
         elif self._state == ComponentState.ERROR:
-            return Text(self._error_text, style=self._error_color)
+            return Text(self._error_text, style=self._error_color or "")
         else:
             current_time = monotonic()
 

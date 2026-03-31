@@ -166,9 +166,9 @@ class SpinnerWidget(Static):
     def render(self) -> Text:
         """Render the spinner widget."""
         if self._state == ComponentState.SUCCESS:
-            return Text(self._success_icon, style=self._success_color)
+            return Text(self._success_icon, style=self._success_color or "")
         elif self._state == ComponentState.ERROR:
-            return Text(self._error_icon, style=self._error_color)
+            return Text(self._error_icon, style=self._error_color or "")
         else:
             frame = self._frames[self._frame_index]
             return Text(frame, style=self.color)

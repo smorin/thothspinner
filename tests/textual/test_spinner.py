@@ -167,7 +167,6 @@ def test_state_transitions():
     assert widget._frame_index == 0
 
 
-@pytest.mark.asyncio
 async def test_state_css_classes():
     """Test CSS classes are set correctly on state changes."""
 
@@ -198,7 +197,6 @@ async def test_state_css_classes():
 
 
 # Test animation
-@pytest.mark.asyncio
 async def test_animation_frame_updates():
     """Test animation frames advance over time."""
 
@@ -218,7 +216,6 @@ async def test_animation_frame_updates():
         assert spinner._frame_index != initial_frame or spinner._frame_index == 0
 
 
-@pytest.mark.asyncio
 async def test_animation_stops_on_success():
     """Test animation timer stops when entering success state."""
 
@@ -241,7 +238,6 @@ async def test_animation_stops_on_success():
         assert spinner._frame_index == frame_after_success
 
 
-@pytest.mark.asyncio
 async def test_animation_restarts_on_reset():
     """Test animation restarts after reset from terminal state."""
 
@@ -264,7 +260,6 @@ async def test_animation_restarts_on_reset():
 
 
 # Test stop and pause
-@pytest.mark.asyncio
 async def test_stop():
     """Test stop freezes animation without changing state."""
 
@@ -285,7 +280,6 @@ async def test_stop():
         assert spinner._frame_index == frame_after_stop
 
 
-@pytest.mark.asyncio
 async def test_pause_resume():
     """Test pause/resume toggle."""
 
@@ -323,7 +317,6 @@ def test_pause_ignored_in_terminal_state():
 
 
 # Test speed control
-@pytest.mark.asyncio
 async def test_speed_control():
     """Test speed multiplier affects animation."""
 
@@ -354,7 +347,6 @@ def test_set_speed_invalid():
 
 
 # Test visibility
-@pytest.mark.asyncio
 async def test_visibility_toggle():
     """Test display property-based visibility changes."""
 
@@ -451,7 +443,6 @@ def test_repr():
 
 
 # Integration test
-@pytest.mark.asyncio
 async def test_app_integration():
     """Test widget in full Textual app lifecycle."""
 
@@ -495,7 +486,6 @@ async def test_app_integration():
         assert s1._timer._active.is_set()
 
 
-@pytest.mark.asyncio
 async def test_widget_lifecycle():
     """Test widget mount/unmount lifecycle."""
 

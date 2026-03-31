@@ -7,7 +7,7 @@ activity. Supports multiple built-in styles and state transitions.
 from __future__ import annotations
 
 import time
-from typing import Any
+from typing import Any, cast
 
 from rich.console import Console, ConsoleOptions, RenderResult
 from rich.measure import Measurement
@@ -293,7 +293,8 @@ class SpinnerComponent:
             text = Text(self.error_icon)
         else:
             # Use longest frame for measurement
-            text = Text(max(self.frames, key=len))
+            longest_frame = cast(str, max(self.frames, key=len))
+            text = Text(longest_frame)
 
         return Measurement.get(console, options, text)
 

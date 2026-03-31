@@ -1,5 +1,7 @@
 """ThothSpinner - Custom spinner components for Rich and Textual."""
 
+from __future__ import annotations
+
 __version__ = "1.0.0"
 
 # Export main orchestrator

@@ -475,27 +475,27 @@ class ThothSpinnerWidget(Widget, can_focus=False):
     @property
     def spinner(self) -> SpinnerWidget:
         """Access the spinner child widget."""
-        return self._components["spinner"]  # type: ignore[return-value]
+        return self._components["spinner"]  # type: ignore
 
     @property
     def message(self) -> MessageWidget:
         """Access the message child widget."""
-        return self._components["message"]  # type: ignore[return-value]
+        return self._components["message"]  # type: ignore
 
     @property
     def progress(self) -> ProgressWidget:
         """Access the progress child widget."""
-        return self._components["progress"]  # type: ignore[return-value]
+        return self._components["progress"]  # type: ignore
 
     @property
     def timer(self) -> TimerWidget:
         """Access the timer child widget."""
-        return self._components["timer"]  # type: ignore[return-value]
+        return self._components["timer"]  # type: ignore
 
     @property
     def hint(self) -> HintWidget:
         """Access the hint child widget."""
-        return self._components["hint"]  # type: ignore[return-value]
+        return self._components["hint"]  # type: ignore
 
     def get_component(self, component_type: str) -> Widget:
         """Get a component by type name.
@@ -540,7 +540,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         for name in self._render_order:
             component = self._components.get(name)
             if component is not None and hasattr(component, "reset"):
-                component.reset()  # type: ignore[union-attr]
+                component.reset()  # type: ignore
             if component is not None:
                 component.display = self._component_display_defaults.get(name, True)
 
@@ -558,11 +558,11 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         # Start animated components
         spinner = self._components["spinner"]
         if hasattr(spinner, "start"):
-            spinner.start()  # type: ignore[union-attr]
+            spinner.start()  # type: ignore
 
         timer = self._components["timer"]
         if hasattr(timer, "start"):
-            timer.start()  # type: ignore[union-attr]
+            timer.start()  # type: ignore
 
     def success(self, message: str | None = None, duration: float | None = None) -> None:
         """Transition to success state.
@@ -712,7 +712,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
                 kwargs["icon"] = icon
 
         if kwargs and hasattr(component, "configure_state"):
-            component.configure_state(state, **kwargs)  # type: ignore[union-attr]
+            component.configure_state(state, **kwargs)  # type: ignore
 
     # --- Auto-clear timer ---
 
@@ -762,8 +762,8 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         """
         progress = self._components["progress"]
         if total is not None:
-            progress.total = total  # type: ignore[union-attr]
-        progress.set(current)  # type: ignore[union-attr]
+            progress.total = total  # type: ignore
+        progress.set(current)  # type: ignore
 
     def set_message(self, *, text: str, restart_rotation: bool = False) -> None:
         """Update the current rotating message text.
@@ -774,7 +774,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         """
         message = self._components["message"]
         # set_message() updates the active rotating message without pinning it.
-        message.configure(text=text, restart_rotation=restart_rotation)  # type: ignore[union-attr]
+        message.configure(text=text, restart_rotation=restart_rotation)  # type: ignore
 
     def set_message_pinned(self, *, text: str) -> None:
         """Pin the message text so it does not rotate.
@@ -783,7 +783,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
             text: New pinned message text to display.
         """
         message = self._components["message"]
-        message.configure(pinned_text=text)  # type: ignore[union-attr]
+        message.configure(pinned_text=text)  # type: ignore
 
     def set_hint(self, *, text: str) -> None:
         """Update the hint component text.
@@ -792,7 +792,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
             text: New hint text to display.
         """
         hint = self._components["hint"]
-        hint.text = text  # type: ignore[union-attr]
+        hint.text = text  # type: ignore
 
     def set_spinner_style(self, *, style: str) -> None:
         """Change the spinner animation style at runtime.
@@ -805,7 +805,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         """
         spinner = self._components["spinner"]
         if hasattr(spinner, "set_style"):
-            spinner.set_style(style)  # type: ignore[union-attr]
+            spinner.set_style(style)  # type: ignore
 
     def set_shimmer_direction(self, *, direction: str) -> None:
         """Control shimmer direction on the message widget.
@@ -815,7 +815,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         """
         message = self._components["message"]
         if hasattr(message, "reverse_shimmer"):
-            message.reverse_shimmer = direction == "right-to-left"  # type: ignore[union-attr]
+            message.reverse_shimmer = direction == "right-to-left"  # type: ignore
 
     def update_component(self, component_type: str, **kwargs: Any) -> None:
         """Generic update method for any component.
@@ -829,7 +829,7 @@ class ThothSpinnerWidget(Widget, can_focus=False):
         """
         component = self.get_component(component_type)
         if hasattr(component, "configure"):
-            component.configure(**kwargs)  # type: ignore[union-attr]
+            component.configure(**kwargs)  # type: ignore
         else:
             for key, value in kwargs.items():
                 if hasattr(component, key):

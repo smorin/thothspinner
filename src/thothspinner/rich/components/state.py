@@ -1,5 +1,7 @@
 """State management for ThothSpinner components."""
 
+from __future__ import annotations
+
 from dataclasses import dataclass
 
 

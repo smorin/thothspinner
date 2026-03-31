@@ -1,5 +1,7 @@
 """Base component classes for ThothSpinner Rich components."""
 
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
 
 from rich.console import Console, ConsoleOptions, RenderResult

@@ -1,5 +1,7 @@
 """Rich spinner components."""
 
+from __future__ import annotations
+
 from thothspinner.rich.components.hint import HintComponent
 from thothspinner.rich.components.message import MessageComponent
 from thothspinner.rich.components.progress import ProgressComponent

@@ -305,10 +305,10 @@ class TimerWidget(Static):
         """Render the timer widget."""
         if self._state == ComponentState.SUCCESS:
             display = self._success_text or self._format_time(self._elapsed)
-            return Text(display, style=self._success_color)
+            return Text(display, style=self._success_color or "")
         elif self._state == ComponentState.ERROR:
             display = self._error_text or self._format_time(self._elapsed)
-            return Text(display, style=self._error_color)
+            return Text(display, style=self._error_color or "")
         else:
             return Text(self._format_time(self.get_elapsed()), style=self.color)
 

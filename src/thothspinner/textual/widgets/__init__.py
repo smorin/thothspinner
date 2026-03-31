@@ -1,5 +1,7 @@
 """Textual widgets for ThothSpinner."""
 
+from __future__ import annotations
+
 from .hint import HintWidget
 from .message import MessageWidget
 from .progress import ProgressWidget

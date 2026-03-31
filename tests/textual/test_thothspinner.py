@@ -718,7 +718,6 @@ class ThothSpinnerApp(App):
         yield ThothSpinnerWidget(**self.thoth_kwargs)
 
 
-@pytest.mark.asyncio
 async def test_compose_yields_all_components():
     """All 5 child widgets mounted in app."""
     app = ThothSpinnerApp()
@@ -739,7 +738,6 @@ async def test_compose_yields_all_components():
         assert thoth.state == ComponentState.IN_PROGRESS
 
 
-@pytest.mark.asyncio
 async def test_success_in_app():
     """Success propagates to all children in app context."""
     app = ThothSpinnerApp()
@@ -755,7 +753,6 @@ async def test_success_in_app():
         assert thoth.timer.state == ComponentState.SUCCESS
 
 
-@pytest.mark.asyncio
 async def test_error_in_app():
     """Error propagates to all children in app context."""
     app = ThothSpinnerApp()
@@ -769,7 +766,6 @@ async def test_error_in_app():
         assert thoth.message.state == ComponentState.ERROR
 
 
-@pytest.mark.asyncio
 async def test_reset_in_app():
     """Reset returns to IN_PROGRESS in app context."""
     app = ThothSpinnerApp()
@@ -784,7 +780,6 @@ async def test_reset_in_app():
         assert thoth.spinner.state == ComponentState.IN_PROGRESS
 
 
-@pytest.mark.asyncio
 async def test_auto_clear_success():
     """Components hidden after success_duration."""
     app = ThothSpinnerApp(success_duration=0.1)
@@ -801,7 +796,6 @@ async def test_auto_clear_success():
             assert not component.display
 
 
-@pytest.mark.asyncio
 async def test_auto_clear_error():
     """Components hidden after error_duration."""
     app = ThothSpinnerApp(error_duration=0.1)
@@ -816,7 +810,6 @@ async def test_auto_clear_error():
             assert not component.display
 
 
-@pytest.mark.asyncio
 async def test_auto_clear_cancelled_on_reset():
     """Auto-clear cancelled when reset is called."""
     app = ThothSpinnerApp(success_duration=1.0)
@@ -832,7 +825,6 @@ async def test_auto_clear_cancelled_on_reset():
         assert thoth.state == ComponentState.IN_PROGRESS
 
 
-@pytest.mark.asyncio
 async def test_visibility_toggle_in_app():
     """show/hide/toggle work in app context."""
     app = ThothSpinnerApp()
@@ -847,7 +839,6 @@ async def test_visibility_toggle_in_app():
         assert thoth.display is True
 
 
-@pytest.mark.asyncio
 async def test_clear_hides_all_in_app():
     """clear() hides all children in app context."""
     app = ThothSpinnerApp()
@@ -860,7 +851,6 @@ async def test_clear_hides_all_in_app():
             assert not component.display
 
 
-@pytest.mark.asyncio
 async def test_start_in_app():
     """start() starts spinner and timer."""
     app = ThothSpinnerApp()
@@ -873,7 +863,6 @@ async def test_start_in_app():
         assert thoth.timer.running is True
 
 
-@pytest.mark.asyncio
 async def test_full_workflow():
     """Complete lifecycle: start → progress updates → success."""
     app = ThothSpinnerApp()
@@ -904,7 +893,6 @@ async def test_full_workflow():
         assert thoth.state == ComponentState.SUCCESS
 
 
-@pytest.mark.asyncio
 async def test_multiple_instances():
     """Two orchestrators in the same app."""
 
@@ -925,7 +913,6 @@ async def test_multiple_instances():
         assert thoth2.state == ComponentState.IN_PROGRESS
 
 
-@pytest.mark.asyncio
 async def test_convenience_methods_in_app():
     """Convenience methods work in running app."""
     app = ThothSpinnerApp()

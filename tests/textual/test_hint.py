@@ -43,7 +43,6 @@ def test_widget_construction_outside_app():
 
 
 # Test text update reactivity
-@pytest.mark.asyncio
 async def test_text_reactivity():
     """Test text updates trigger re-renders with pilot."""
 
@@ -93,7 +92,6 @@ def test_color_validation():
         widget.color = "#GGGGGG"
 
 
-@pytest.mark.asyncio
 async def test_style_rendering():
     """Test style application in rendering."""
 
@@ -108,7 +106,6 @@ async def test_style_rendering():
 
 
 # Test visibility toggles
-@pytest.mark.asyncio
 async def test_visibility_toggle():
     """Test display-based visibility changes."""
 
@@ -144,7 +141,6 @@ async def test_visibility_toggle():
 
 
 # Integration test with Textual app
-@pytest.mark.asyncio
 async def test_app_integration():
     """Test widget in full Textual app with pilot."""
 
@@ -185,7 +181,6 @@ async def test_app_integration():
 
 
 # Test widget lifecycle and render output
-@pytest.mark.asyncio
 async def test_widget_lifecycle():
     """Test widget mount/unmount lifecycle."""
 
@@ -237,7 +232,6 @@ def test_render_output():
 
 
 # Performance test for rapid reactive updates
-@pytest.mark.asyncio
 async def test_performance_rapid_updates():
     """Test rapid reactive updates don't cause issues."""
 
@@ -304,7 +298,6 @@ def test_feature_parity():
     assert widget.display
 
 
-@pytest.mark.asyncio
 async def test_animation_support():
     """Test animation methods."""
 
@@ -355,7 +348,6 @@ def test_build_content():
 
 
 # Test reactive watchers
-@pytest.mark.asyncio
 async def test_reactive_watchers():
     """Test reactive property watchers trigger correctly."""
 
@@ -487,7 +479,6 @@ class TestStateManagement:
         # State should remain ERROR since transition is invalid
         assert widget.state == ComponentState.ERROR
 
-    @pytest.mark.asyncio
     async def test_css_classes_applied_via_watch_state(self):
         """Test that watch__state applies correct CSS classes."""
 

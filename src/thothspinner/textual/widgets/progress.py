@@ -117,7 +117,7 @@ class ProgressWidget(Static):
         self._bar_brackets = bar_brackets
         self._bar_show_percentage = bar_show_percentage
         # Animation config
-        self._animate = animate
+        self._animate = animate  # type: ignore
         self._animation_duration = animation_duration
         self._animation_easing = animation_easing
 
@@ -186,9 +186,9 @@ class ProgressWidget(Static):
     def render(self) -> Text:
         """Render the progress widget."""
         if self._state == ComponentState.SUCCESS:
-            return Text(self._success_text, style=self._success_color)
+            return Text(self._success_text, style=self._success_color or "")
         elif self._state == ComponentState.ERROR:
-            return Text(self._error_text, style=self._error_color)
+            return Text(self._error_text, style=self._error_color or "")
         else:
             return Text(self._format_progress(), style=self.color)
 
