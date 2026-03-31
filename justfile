@@ -6,6 +6,25 @@ default:
 install:
     uv sync
 
+# Build distribution (wheel + sdist)
+build:
+    uv build
+
+# Publish to TestPyPI (requires OIDC or UV_PUBLISH_TOKEN)
+publish-test:
+    uv publish --index-url https://test.pypi.org/legacy/
+
+# Publish to PyPI (requires OIDC or UV_PUBLISH_TOKEN)
+publish:
+    uv publish
+
+# Tag and push a release (triggers CI publish workflow)
+release version:
+    just clean
+    just build
+    git tag v{{version}}
+    git push origin v{{version}}
+
 # Format code with ruff
 format:
     uv run ruff format src/ tests/ examples/
@@ -148,3 +167,29 @@ clean:
 # Check environment dependencies
 check:
     @make check
+
+# Install lefthook and git hooks
+install-lefthook:
+    @if command -v lefthook > /dev/null 2>&1; then \
+        echo "lefthook is already installed"; \
+    else \
+        brew install lefthook; \
+    fi
+    lefthook install
+
+# Show lefthook help
+lefthook-help:
+    lefthook --help
+
+# Open lefthook docs
+lefthook-docs:
+    open "https://github.com/evilmartians/lefthook"
+
+# Show lefthook version
+lefthook-version:
+    lefthook version
+
+# Update lefthook
+update-lefthook:
+    brew upgrade lefthook || brew install lefthook
+    lefthook install

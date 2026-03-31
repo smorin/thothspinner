@@ -1,9 +1,11 @@
 # ThothSpinner
 
+[![PyPI version](https://img.shields.io/pypi/v/thothspinner.svg)](https://pypi.org/project/thothspinner/)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Rich](https://img.shields.io/badge/rich-14.1+-green.svg)](https://github.com/Textualize/rich)
 [![Coverage](https://img.shields.io/badge/coverage-97%25+-brightgreen.svg)](htmlcov/index.html)
 [![Documentation](https://img.shields.io/badge/docs-comprehensive-blue.svg)](docs/thothspinner_rich.md)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A highly configurable progress indicator library for Python, built on Rich. ThothSpinner provides beautiful, composable terminal UI components including spinners, progress bars, timers, and animated messages with shimmer effects.
 
@@ -15,12 +17,18 @@ A highly configurable progress indicator library for Python, built on Rich. Thot
 - 🎯 **Thread-Safe**: Proper locking for concurrent operations
 - 🚀 **Performance Optimized**: Efficient rendering with minimal CPU usage
 - 🎭 **Rich Integration**: Seamless integration with Rich Console and Live displays
+- 📺 **Textual Support**: Native Textual widgets with reactive state management
 
 ## 📚 Documentation
 
-- **[API Reference](docs/thothspinner_rich.md)** - Complete API documentation for all components
-- **[Examples Gallery](docs/examples/README.md)** - Runnable examples for common use cases
+- **[Rich API Reference](docs/thothspinner_rich.md)** - Complete API documentation for Rich components
+- **[Textual API Reference](docs/thothspinner_textual.md)** - Textual widget documentation
+- **[Examples Gallery](docs/examples/README.md)** - Runnable Rich examples
+- **[Textual Examples](docs/examples/TEXTUAL_README.md)** - Textual application examples
+- **[Rich to Textual Guide](docs/rich_to_textual_guide.md)** - Migration guide
 - **[Troubleshooting Guide](docs/troubleshooting.md)** - Solutions to common issues
+- **[Release Guide](RELEASE.md)** - Build, publish, and CI/CD architecture
+- **[First-Time Publish Guide](PUBLISH.md)** - Step-by-step v1.0.0 PyPI publish walkthrough
 
 ## 🚀 Quick Start
 
@@ -36,13 +44,37 @@ console = Console()
 with Live(ThothSpinner(), console=console) as live:
     spinner = live.renderable
     spinner.start()
-    
+
     # Simulate work with progress
     for i in range(100):
         spinner.update_progress(current=i, total=100)
         time.sleep(0.05)
-    
+
     spinner.success("Task completed!")
+```
+
+### Textual Quick Start
+
+```python
+from textual.app import App, ComposeResult
+from thothspinner.textual import TextualThothSpinner
+import asyncio
+
+class MyApp(App):
+    def compose(self) -> ComposeResult:
+        yield TextualThothSpinner(
+            spinner_style="npm_dots",
+            message_text="Processing data",
+            message_shimmer=True,
+        )
+
+    async def on_mount(self) -> None:
+        spinner = self.query_one(TextualThothSpinner)
+        spinner.start()
+        await asyncio.sleep(2)
+        spinner.success("Done!")
+
+MyApp().run()
 ```
 
 ## 📦 Installation
@@ -56,7 +88,7 @@ with Live(ThothSpinner(), console=console) as live:
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/thothspinner.git
+git clone https://github.com/smorin/thothspinner.git
 cd thothspinner
 
 # Install with uv (recommended)
@@ -66,11 +98,13 @@ uv sync
 pip install -e .
 ```
 
-### Install from PyPI (Coming Soon)
+### Install from PyPI
 
 ```bash
-# Will be available after v1.0.0 release
 pip install thothspinner
+
+# Or with uv (recommended)
+uv add thothspinner
 ```
 
 ## 🎯 Available Components
@@ -148,12 +182,13 @@ thothspinner/
 │   ├── rich/               # Rich-based components
 │   │   ├── components/     # Individual components
 │   │   └── thothspinner.py # Main orchestrator
-│   └── textual/            # Future Textual widgets
+│   └── textual/            # Textual widgets
 ├── tests/                  # Test suite (97%+ coverage)
 ├── docs/                   # Documentation
-│   ├── thothspinner_rich.md    # API reference
-│   ├── examples/           # Example scripts
-│   └── troubleshooting.md # Troubleshooting guide
+│   ├── thothspinner_rich.md     # Rich API reference
+│   ├── thothspinner_textual.md  # Textual API reference
+│   ├── examples/                # Example scripts
+│   └── troubleshooting.md       # Troubleshooting guide
 ├── examples/               # Demo scripts
 ├── justfile                # Task automation
 └── pyproject.toml          # Project configuration
@@ -208,11 +243,11 @@ from rich.live import Live
 with Live(ThothSpinner()) as live:
     spinner = live.renderable
     spinner.start()
-    
+
     for i in range(100):
         spinner.update_progress(current=i, total=100)
         time.sleep(0.05)
-    
+
     spinner.success()
 ```
 
@@ -226,12 +261,12 @@ spinner = ThothSpinner(progress_format="fraction")
 
 with Live(spinner) as live:
     spinner.start()
-    
+
     for i, file in enumerate(files):
         spinner.set_message(text=f"Processing {file.name}")  # rotating message update
         spinner.update_progress(current=i, total=len(files))
         process_file(file)
-    
+
     spinner.success(f"Processed {len(files)} files")
 ```
 
@@ -241,7 +276,7 @@ with Live(spinner) as live:
 with Live(ThothSpinner()) as live:
     spinner = live.renderable
     spinner.start()
-    
+
     try:
         risky_operation()
         spinner.success("Operation successful")
@@ -255,35 +290,48 @@ More examples in the [Examples Gallery](docs/examples/README.md).
 
 ### Completed Milestones
 
-✅ **M01-M05: Core Rich Components** (v0.5.0)
-- All Rich components implemented (Spinner, Progress, Timer, Message, Hint)
+✅ **M01–M05: Core Rich Components** (v0.1.0–v0.5.0)
+- Hint, Spinner, Progress, Timer, and Message components
 - ThothSpinner orchestrator with state management
-- 97%+ test coverage across all components
-- Thread-safe operations with proper locking
+- 97%+ test coverage, thread-safe operations with proper locking
 
-### Current Status
+✅ **M06: Rich Documentation** (v0.6.0)
+- Comprehensive API reference, examples gallery with 20+ examples, troubleshooting guide
 
-📝 **M06: Documentation** (v0.6.0) - In Progress
-- Comprehensive API reference
-- Examples gallery with 20+ examples
-- Troubleshooting guide
-- Performance optimization guide
+✅ **M07–M13: Textual Components & Documentation** (v0.7.0–v0.13.0)
+- Full Textual widget set with reactive state management
+- Feature parity with all Rich components
+- Textual examples, integration guides, and API reference
+
+✅ **M15: Progress Bar Format & Animation Smoothing** (v1.1.0)
+- Bar format style for Textual ProgressWidget with configurable fill characters
+- Smooth animated transitions when progress values change
 
 ### Upcoming
 
-- **M07-M12: Textual Components** (v0.7.0 - v0.12.0)
-  - Textual-native widgets with feature parity
-  - Reactive state management
-  - Integration with Textual apps
-
-- **M13: Textual Documentation** (v0.13.0)
-  - Textual-specific documentation
-  - Integration guides
-
-- **M14: Publishing** (v1.0.0)
+- **M14: Publishing to PyPI** (v1.0.0)
   - PyPI package publication
   - GitHub Actions CI/CD
   - Release automation
+
+### Releasing
+
+**First time?** Follow the **[First-Time Publish Guide](PUBLISH.md)** for step-by-step OIDC setup and the v1.0.0 publish walkthrough.
+
+For subsequent releases, see the **[Release Guide](RELEASE.md)**. Quick reference:
+
+```bash
+# 1. Bump version in pyproject.toml, update CHANGELOG.md, then:
+just all                 # format, lint, typecheck, test — must all pass
+git add pyproject.toml CHANGELOG.md
+git commit -m "chore: release v1.2.3"
+git push origin main
+
+# 2. Tag and publish (triggers GitHub Actions → TestPyPI → PyPI)
+just release 1.2.3
+```
+
+Releases are published automatically via OIDC trusted publishing — no API tokens required. See [RELEASE.md](RELEASE.md) for OIDC setup, CI/CD pipeline details, and troubleshooting.
 
 ## 🤝 Contributing
 
@@ -313,11 +361,11 @@ MIT License - See [LICENSE](LICENSE) file for details.
 
 For issues, questions, or suggestions:
 
-- 📝 [Open an issue](https://github.com/yourusername/thothspinner/issues) on GitHub
+- 📝 [Open an issue](https://github.com/smorin/thothspinner/issues) on GitHub
 - 📚 Check the [Documentation](docs/thothspinner_rich.md)
 - 🔍 Review the [Troubleshooting Guide](docs/troubleshooting.md)
 - 📧 Contact the maintainers
 
 ---
 
-**Current Version:** 0.5.0 | **Python:** 3.11+ | **Coverage:** 97%+ | **[Full Documentation](docs/thothspinner_rich.md)**
+**Current Version:** 1.0.0 | **Python:** 3.11+ | **Coverage:** 97%+ | **[Rich Docs](docs/thothspinner_rich.md)** | **[Textual Docs](docs/thothspinner_textual.md)**

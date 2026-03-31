@@ -18,13 +18,13 @@ from typing import Optional, Dict, Tuple, Any
 
 class BaseComponent(ABC):
     """Base class for all ThothSpinner components."""
-    
+
     max_refresh: Optional[float] = None  # Control refresh rate
-    
+
     def __init__(self):
         self._renderable_cache: Dict[str, Tuple[float, Any]] = {}
         self._update_time: Optional[float] = None
-    
+
     @abstractmethod
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
@@ -44,7 +44,7 @@ Rich caches renderables with timestamps to avoid unnecessary re-rendering:
 def __call__(self, task: "Task") -> RenderableType:
     """Called by Progress to return a renderable with caching."""
     current_time = task._get_time()
-    
+
     if self.max_refresh is not None and self._update_time is not None:
         if current_time - self._update_time < self.max_refresh:
             try:
@@ -65,18 +65,18 @@ Rich uses a `MockClock` class to control time in tests:
 ```python
 class MockClock:
     """A clock that is manually advanced for testing."""
-    
+
     def __init__(self, time=0.0, auto=True):
         self.time = time
         self.auto = auto
-    
+
     def __call__(self) -> float:
         try:
             return self.time
         finally:
             if self.auto:
                 self.time += 1
-    
+
     def tick(self, advance: float = 1):
         self.time += advance
 ```
@@ -132,7 +132,7 @@ from rich.console import Console, ConsoleOptions, RenderResult
 
 class HintComponent:
     """Static hint text component following Rich patterns."""
-    
+
     def __init__(
         self,
         text: str = "(esc to interrupt)",
@@ -144,14 +144,14 @@ class HintComponent:
         self.color = color
         self.visible = visible
         self._style = style or Style(color=color)
-    
+
     def __rich_console__(
         self, console: Console, options: ConsoleOptions
     ) -> RenderResult:
         """Render the hint text."""
         if self.visible:
             yield Text(self.text, style=self._style)
-    
+
     def __rich_measure__(
         self, console: Console, options: ConsoleOptions
     ) -> Measurement:
@@ -194,15 +194,15 @@ def test_hint_with_progress():
     from rich.progress import Progress, BarColumn
     from rich.console import Console
     import io
-    
+
     console = Console(file=io.StringIO(), force_terminal=True)
     hint = HintComponent(text="ESC to cancel", color="#FF5555")
-    
+
     with Progress(BarColumn(), console=console) as progress:
         task = progress.add_task("Processing", total=100)
         console.print(hint)
         progress.update(task, advance=50)
-    
+
     output = console.file.getvalue()
     assert "ESC to cancel" in output
     assert "\x1b[" in output  # Check for ANSI codes
@@ -268,11 +268,11 @@ def render(self, time: float) -> RenderableType:
     """Render the component for a given time."""
     if not self.visible:
         return Text("")  # Return empty text instead of None
-    
+
     # Cache rendered text if it hasn't changed
     if self._last_text == self.text and self._last_style == self._style:
         return self._cached_renderable
-    
+
     self._cached_renderable = Text(self.text, style=self._style)
     self._last_text = self.text
     self._last_style = self._style
@@ -296,14 +296,14 @@ class TestHintComponent:
         assert hint.text == "(esc to interrupt)"
         assert hint.color == "#888888"
         assert hint.visible is True
-    
+
     def test_visibility_toggle(self):
         """Test visibility controls rendering."""
         console = Console(file=io.StringIO())
         hint = HintComponent(visible=False)
         console.print(hint)
         assert console.file.getvalue() == ""
-    
+
     def test_color_application(self):
         """Test color is properly applied to text."""
         console = Console(file=io.StringIO(), force_terminal=True)
@@ -312,7 +312,7 @@ class TestHintComponent:
         output = console.file.getvalue()
         # Check for red color ANSI codes
         assert "\x1b[38;2;255;0;0m" in output
-    
+
     def test_custom_text(self):
         """Test custom text rendering."""
         console = Console(file=io.StringIO())
@@ -333,17 +333,17 @@ Follow Rich's documentation pattern:
 ```python
 class HintComponent:
     """A static hint text component for Rich console.
-    
+
     The HintComponent displays static text with customizable color and visibility.
     It integrates seamlessly with Rich's rendering system and can be used
     alongside progress bars and other Rich components.
-    
+
     Args:
         text (str, optional): The hint text to display. Defaults to "(esc to interrupt)".
         color (str, optional): Hex color code for the text. Defaults to "#888888".
         visible (bool, optional): Whether the hint is visible. Defaults to True.
         style (StyleType, optional): Rich Style object. Overrides color if provided.
-    
+
     Example:
         >>> from rich.console import Console
         >>> console = Console()
@@ -383,11 +383,11 @@ Even though HintComponent is static, design the interface to support future live
 
 ```python
 class HintComponent:
-    def update(self, text: Optional[str] = None, 
+    def update(self, text: Optional[str] = None,
                color: Optional[str] = None,
                visible: Optional[bool] = None) -> None:
         """Update component properties.
-        
+
         Args:
             text: New text to display
             color: New color hex code

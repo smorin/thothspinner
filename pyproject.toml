@@ -1,23 +1,46 @@
 [project]
 name = "thothspinner"
-version = "0.1.0"
-description = "Add your description here"
+version = "1.0.0"
+description = "A highly configurable progress indicator library for Python with Rich and Textual support"
 readme = "README.md"
+license = "MIT"
 authors = [
     { name = "Steve Morin", email = "steve.morin@gmail.com" }
 ]
 requires-python = ">=3.11"
+keywords = [
+    "spinner", "progress", "terminal", "cli", "rich", "textual",
+    "animation", "loading", "progress-bar", "tui",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Terminals",
+    "Topic :: System :: Monitoring",
+    "Typing :: Typed",
+]
 dependencies = [
     "rich>=13",
     "textual>=6.1.0",
 ]
 
-[project.scripts]
-thothspinner = "thothspinner:main"
+[project.urls]
+Homepage = "https://github.com/smorin/thothspinner"
+Repository = "https://github.com/smorin/thothspinner"
+Documentation = "https://github.com/smorin/thothspinner/blob/main/docs/thothspinner_rich.md"
+Changelog = "https://github.com/smorin/thothspinner/blob/main/CHANGELOG.md"
+"Bug Tracker" = "https://github.com/smorin/thothspinner/issues"
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["uv_build>=0.11.2,<0.12"]
+build-backend = "uv_build"
 
 [dependency-groups]
 dev = [

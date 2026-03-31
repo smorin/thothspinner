@@ -22,7 +22,7 @@ This document tracks the development milestones for the ThothSpinner project, a 
 - Complex animations or state management
 
 ### Tests & Tasks
-See [M01.md](./M01.md) for detailed task list
+See [M01.md](./planning/M01.md) for detailed task list
 
 ### Deliverable
 ```python
@@ -51,7 +51,7 @@ console.print(hint)
 - Add state transformation capabilities
 
 ### Tests & Tasks
-See [M02.md](./M02.md) for detailed task list
+See [M02.md](./planning/M02.md) for detailed task list
 
 ### Deliverable
 ```python
@@ -87,7 +87,7 @@ with Live(spinner, console=console, refresh_per_second=20):
 - Add update methods and state management
 
 ### Tests & Tasks
-See [M03.md](./M03.md) for detailed task list
+See [M03.md](./planning/M03.md) for detailed task list
 
 ### Deliverable
 ```python
@@ -249,7 +249,7 @@ To be defined in M13.md
 
 ---
 
-## [ ] Milestone M14: Publishing to PyPI (v1.0.0)
+## [-] Milestone M14: Publishing to PyPI (v1.0.0)
 **Goal/Requirement**: Publish package to PyPI
 - Finalize package metadata
 - Set up GitHub Actions for CI/CD
@@ -270,6 +270,6 @@ To be defined in M14.md
 **Note**: Deferred from M09 (tasks M09-T04 and M09-T09) to maintain strict Rich feature parity in the initial ProgressWidget release.
 
 ### Tests & Tasks
-See [M15.md](./M15.md) for detailed task list
+See [M15.md](./planning/M15.md) for detailed task list
 
 ---

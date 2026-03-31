@@ -1,6 +1,6 @@
 """ThothSpinner - Custom spinner components for Rich and Textual."""
 
-__version__ = "0.5.0"
+__version__ = "1.0.0"
 
 # Export main orchestrator
 # Export states
