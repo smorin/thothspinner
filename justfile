@@ -5,7 +5,7 @@ default:
 # Install all dependencies
 install:
     uv sync
-    brew install vhs
+    brew install vhs ttyd ffmpeg
 
 # Build distribution (wheel + sdist)
 build:

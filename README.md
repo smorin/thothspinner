@@ -251,7 +251,7 @@ uv run thothspinner browse
 ### Generating the Demo GIF
 
 ```bash
-# Install dependencies (includes vhs)
+# Install dependencies (includes vhs, ttyd, ffmpeg)
 just install
 
 # Generate demo.gif
