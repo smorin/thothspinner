@@ -6,6 +6,7 @@ activity. Supports multiple built-in styles and state transitions.
 
 from __future__ import annotations
 
+import difflib
 import time
 from typing import Any, cast
 
@@ -82,7 +83,13 @@ class SpinnerComponent:
             if style in SPINNER_FRAMES:
                 spinner_def = SPINNER_FRAMES[style]
             else:
-                spinner_def = SPINNER_FRAMES["npm_dots"]
+                available = sorted(SPINNER_FRAMES.keys())
+                suggestions = difflib.get_close_matches(style, available, n=3, cutoff=0.6)
+                hint = f" Did you mean {suggestions[0]!r}?" if suggestions else ""
+                raise ValueError(
+                    f"Unknown spinner style {style!r}.{hint} "
+                    f"Available styles: {', '.join(available)}"
+                )
             self.frames = spinner_def["frames"]
             self.interval = spinner_def["interval"]
         else:

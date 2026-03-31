@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import difflib
 from typing import Any, Literal, cast
 
 from rich.console import Console, ConsoleOptions, RenderResult
@@ -51,6 +52,17 @@ class ProgressComponent(BaseComponent):
         self.total = total
         self.format = format or {"style": "fraction"}
         self.format_style: FormatStyle = cast(FormatStyle, self.format.get("style", "fraction"))
+        _valid_format_styles = frozenset(
+            {"fraction", "percentage", "of_text", "count_only", "ratio"}
+        )
+        if self.format_style not in _valid_format_styles:
+            available = sorted(_valid_format_styles)
+            suggestions = difflib.get_close_matches(self.format_style, available, n=3, cutoff=0.6)
+            hint = f" Did you mean {suggestions[0]!r}?" if suggestions else ""
+            raise ValueError(
+                f"Unknown progress format style {self.format_style!r}.{hint} "
+                f"Available styles: {', '.join(available)}"
+            )
         self.zero_pad = zero_pad
         self._state = ComponentState.IN_PROGRESS
         self._state_configs = self._get_default_state_configs()

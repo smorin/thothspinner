@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import difflib
 from time import time
 from typing import Any, Literal, cast
 
@@ -54,6 +55,28 @@ class TimerComponent(BaseComponent):
         self.visible = visible
         self.format = format or {"style": "auto"}
         self.format_style: TimerFormat = cast(TimerFormat, self.format.get("style", "auto"))
+        _valid_timer_formats = frozenset(
+            {
+                "seconds",
+                "seconds_decimal",
+                "seconds_precise",
+                "milliseconds",
+                "mm:ss",
+                "hh:mm:ss",
+                "compact",
+                "full_ms",
+                "auto",
+                "auto_ms",
+            }
+        )
+        if self.format_style not in _valid_timer_formats:
+            available = sorted(_valid_timer_formats)
+            suggestions = difflib.get_close_matches(self.format_style, available, n=3, cutoff=0.6)
+            hint = f" Did you mean {suggestions[0]!r}?" if suggestions else ""
+            raise ValueError(
+                f"Unknown timer format style {self.format_style!r}.{hint} "
+                f"Available styles: {', '.join(available)}"
+            )
         self.precision = self.format.get("precision", precision)
         self._start_time: float | None = None
         self._elapsed: float = 0.0

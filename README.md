@@ -9,6 +9,10 @@
 
 A highly configurable progress indicator library for Python, built on Rich. ThothSpinner provides beautiful, composable terminal UI components including spinners, progress bars, timers, and animated messages with shimmer effects.
 
+## Demo
+
+![ThothSpinner demo](demo.gif)
+
 ## ✨ Features
 
 - 🎨 **Modular Components**: Mix and match spinner, progress, timer, message, and hint components

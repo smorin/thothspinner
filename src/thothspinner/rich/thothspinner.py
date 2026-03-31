@@ -9,7 +9,10 @@ from __future__ import annotations
 import threading
 import time
 from threading import RLock
-from typing import Any, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
+
+if TYPE_CHECKING:
+    from thothspinner.rich.context import _TrackContext
 
 from rich.columns import Columns
 from rich.console import Console, ConsoleOptions, Group, RenderResult
@@ -853,17 +856,26 @@ class ThothSpinner:
         Args:
             style: Name of a built-in spinner style from SPINNER_FRAMES.
         """
+        import difflib
+
         from thothspinner.rich.spinners.frames import SPINNER_FRAMES
+
+        if style not in SPINNER_FRAMES:
+            available = sorted(SPINNER_FRAMES.keys())
+            suggestions = difflib.get_close_matches(style, available, n=3, cutoff=0.6)
+            hint = f" Did you mean {suggestions[0]!r}?" if suggestions else ""
+            raise ValueError(
+                f"Unknown spinner style {style!r}.{hint} Available styles: {', '.join(available)}"
+            )
 
         with self._lock:
             spinner = self._components.get("spinner")
             if spinner is None:
                 return
-            if style in SPINNER_FRAMES:
-                spinner_def = SPINNER_FRAMES[style]
-                spinner.frames = spinner_def["frames"]
-                spinner.interval = spinner_def["interval"]
-                spinner._start_time = None  # Reset animation
+            spinner_def = SPINNER_FRAMES[style]
+            spinner.frames = spinner_def["frames"]
+            spinner.interval = spinner_def["interval"]
+            spinner._start_time = None  # Reset animation
 
     def set_hint(self, *, text: str) -> None:
         """Update hint text.
@@ -915,6 +927,45 @@ class ThothSpinner:
                     message.reverse_shimmer = direction == "right-to-left"
             except KeyError:
                 pass
+
+    @classmethod
+    def track(
+        cls,
+        *,
+        message: str = "Loading",
+        message_text: str | None = None,
+        console: Console | None = None,
+        refresh_per_second: float = 20,
+        **kwargs: Any,
+    ) -> _TrackContext:
+        """Context manager that handles Live, start(), success()/error() automatically.
+
+        Usage::
+
+            with ThothSpinner.track(message="Processing...") as spinner:
+                for i in range(100):
+                    spinner.update(i, 100)
+            # Automatically calls success() on clean exit, error() on exception.
+
+        Args:
+            message: Initial rotating message text (shorthand for message_text).
+            message_text: Explicit message_text; takes precedence over message.
+            console: Rich Console instance. Creates a default one if None.
+            refresh_per_second: Live refresh rate. Defaults to 20.
+            **kwargs: All ThothSpinner.__init__ kwargs are accepted.
+
+        Returns:
+            _TrackContext context manager exposing the spinner and an
+            update(current, total) convenience method.
+        """
+        from rich.live import Live
+
+        from thothspinner.rich.context import _TrackContext
+
+        effective_message = message_text if message_text is not None else message
+        spinner = cls(message_text=effective_message, **kwargs)
+        live = Live(spinner, console=console, refresh_per_second=refresh_per_second)
+        return _TrackContext(spinner, live)
 
     @classmethod
     def from_dict(cls, config: dict[str, Any], **kwargs) -> ThothSpinner:

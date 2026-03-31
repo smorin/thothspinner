@@ -204,6 +204,10 @@ examples-thothspinner: example-thothspinner-basic example-thothspinner-config ex
 examples: example-hint example-spinner example-progress example-timer example-message example-message-shimmer example-message-words example-message-word-control example-message-states example-combined example-combined-message examples-thothspinner
     @echo "All examples completed!"
 
+# Generate demo.gif for README (requires: brew install vhs)
+demo-gif:
+    vhs demo.tape
+
 # Run all checks (format, lint, typecheck, security, test)
 all: format lint typecheck security test
 

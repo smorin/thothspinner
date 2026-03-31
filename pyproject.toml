@@ -31,6 +31,9 @@ dependencies = [
     "textual>=6.1.0",
 ]
 
+[project.scripts]
+thothspinner = "thothspinner.__main__:main"
+
 [project.urls]
 Homepage = "https://github.com/smorin/thothspinner"
 Repository = "https://github.com/smorin/thothspinner"
