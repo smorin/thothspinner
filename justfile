@@ -5,6 +5,7 @@ default:
 # Install all dependencies
 install:
     uv sync
+    brew install vhs
 
 # Build distribution (wheel + sdist)
 build:
