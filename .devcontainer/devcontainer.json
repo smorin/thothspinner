@@ -1,0 +1,13 @@
+{
+    "name": "thothspinner",
+    "image": "mcr.microsoft.com/devcontainers/python:3.11-bookworm",
+    "postCreateCommand": "pip install uv && uv sync && curl -L https://just.systems/install.sh | bash -s -- --to /usr/local/bin",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "charliermarsh.ruff",
+                "ms-python.python"
+            ]
+        }
+    }
+}

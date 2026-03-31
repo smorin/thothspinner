@@ -18,8 +18,50 @@ publish-test:
 publish:
     uv publish
 
+# Show current version from pyproject.toml
+current-version:
+    @grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/'
+
+# Bump patch version (1.0.0 → 1.0.1)
+bump-patch:
+    #!/usr/bin/env python3
+    import re, pathlib
+    f = pathlib.Path('pyproject.toml')
+    c = f.read_text()
+    m = re.search(r'(version = ")(\d+)\.(\d+)\.(\d+)(")', c)
+    new_v = f'{m.group(2)}.{m.group(3)}.{int(m.group(4))+1}'
+    f.write_text(c[:m.start()] + f'{m.group(1)}{new_v}{m.group(5)}' + c[m.end():])
+    print(f'Bumped patch: {m.group(2)}.{m.group(3)}.{m.group(4)} -> {new_v}')
+
+# Bump minor version (1.0.0 → 1.1.0)
+bump-minor:
+    #!/usr/bin/env python3
+    import re, pathlib
+    f = pathlib.Path('pyproject.toml')
+    c = f.read_text()
+    m = re.search(r'(version = ")(\d+)\.(\d+)\.(\d+)(")', c)
+    new_v = f'{m.group(2)}.{int(m.group(3))+1}.0'
+    f.write_text(c[:m.start()] + f'{m.group(1)}{new_v}{m.group(5)}' + c[m.end():])
+    print(f'Bumped minor: {m.group(2)}.{m.group(3)}.{m.group(4)} -> {new_v}')
+
+# Bump major version (1.0.0 → 2.0.0)
+bump-major:
+    #!/usr/bin/env python3
+    import re, pathlib
+    f = pathlib.Path('pyproject.toml')
+    c = f.read_text()
+    m = re.search(r'(version = ")(\d+)\.(\d+)\.(\d+)(")', c)
+    new_v = f'{int(m.group(2))+1}.0.0'
+    f.write_text(c[:m.start()] + f'{m.group(1)}{new_v}{m.group(5)}' + c[m.end():])
+    print(f'Bumped major: {m.group(2)}.{m.group(3)}.{m.group(4)} -> {new_v}')
+
+# Generate CHANGELOG.md from git history (requires git-cliff)
+changelog:
+    uvx git-cliff -o CHANGELOG.md
+
 # Tag and push a release (triggers CI publish workflow)
 release version:
+    just changelog
     just clean
     just build
     git tag v{{version}}
@@ -45,6 +87,14 @@ test:
 test-cov:
     uv run pytest tests/ -v --cov=src/thothspinner --cov-report=term-missing --cov-report=html
     @echo "Coverage report generated at htmlcov/index.html"
+
+# Regenerate pytest-textual-snapshot snapshots
+update-snapshots:
+    uv run pytest tests/ --snapshot-update
+
+# Run bandit security linter
+security:
+    uvx bandit -r src/
 
 # Run hint example
 example-hint:
@@ -154,8 +204,8 @@ examples-thothspinner: example-thothspinner-basic example-thothspinner-config ex
 examples: example-hint example-spinner example-progress example-timer example-message example-message-shimmer example-message-words example-message-word-control example-message-states example-combined example-combined-message examples-thothspinner
     @echo "All examples completed!"
 
-# Run all checks (format, lint, typecheck, test)
-all: format lint typecheck test
+# Run all checks (format, lint, typecheck, security, test)
+all: format lint typecheck security test
 
 # Clean build artifacts
 clean:

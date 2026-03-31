@@ -7,4 +7,5 @@ dist/
 .ruff_cache/
 htmlcov/
 .coverage
+snapshot_report.html
 *.egg-info

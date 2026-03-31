@@ -64,5 +64,9 @@ pre-commit:
       glob: "*.{py,md}"
       run: uvx codespell --skip=".git,.venv,htmlcov,uv.lock" --ignore-words-list=digitalizing {staged_files}
 
+    bandit:
+      glob: "*.py"
+      run: uvx bandit -r src/ -ll
+
     pytest:
       run: uv run pytest tests/ -v
