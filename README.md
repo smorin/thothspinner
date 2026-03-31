@@ -235,6 +235,37 @@ just all
 just clean
 ```
 
+### CLI Tools
+
+```bash
+# Preview all 48 spinner styles
+uv run thothspinner preview
+
+# Preview a specific style
+uv run thothspinner preview npm_dots
+
+# Open interactive TUI style browser
+uv run thothspinner browse
+```
+
+### Generating the Demo GIF
+
+```bash
+# Install dependencies (includes vhs)
+just install
+
+# Generate demo.gif
+just demo-gif
+
+# Verify it looks right
+open demo.gif
+
+# Commit and push
+git add demo.gif
+git commit -m "docs: add demo.gif for README"
+git push origin main
+```
+
 ### Testing
 
 The project maintains 97%+ test coverage, including visual regression tests via `pytest-textual-snapshot`:
