@@ -16,15 +16,15 @@ Sleep 200ms
 Sleep 4000ms
 
 # Show the CLI preview command for a couple of styles
-Type "thothspinner preview npm_dots"
+Type "uv run thothspinner preview npm_dots"
 Enter
 Sleep 2000ms
 
-Type "thothspinner preview claude_stars"
+Type "uv run thothspinner preview claude_stars"
 Enter
 Sleep 2000ms
 
-Type "thothspinner preview moon"
+Type "uv run thothspinner preview moon"
 Enter
 Sleep 2000ms
 
