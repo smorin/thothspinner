@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
+from textual.containers import Horizontal
 from textual.reactive import reactive
-from textual.widgets import Footer, Header, Label, ListItem, ListView, Static
+from textual.widget import Widget
+from textual.widgets import Footer, Header, Label, ListItem, ListView
 
 from thothspinner.rich.spinners.frames import SPINNER_FRAMES
 from thothspinner.textual import ThothSpinnerWidget
@@ -24,7 +26,7 @@ class StyleListItem(ListItem):
         yield Label(self.style_name)
 
 
-class PreviewPanel(Static):
+class PreviewPanel(Widget):
     """Right panel: live spinner preview + metadata."""
 
     style_name: reactive[str] = reactive("npm_dots", recompose=True)
@@ -54,24 +56,26 @@ class BrowseApp(App):
     """Interactive style browser TUI for ThothSpinner."""
 
     TITLE = "ThothSpinner Style Browser"
+    SUB_TITLE = "↑↓ to browse styles  •  Q to quit"
     BINDINGS = [
         Binding("q", "quit", "Quit"),
+        Binding("up", "cursor_up", "Previous"),
+        Binding("down", "cursor_down", "Next"),
     ]
 
     DEFAULT_CSS = """
-    Screen {
-        layout: grid;
-        grid-size: 2;
-        grid-columns: 1fr 2fr;
+    #content {
+        height: 1fr;
     }
     #style-list {
+        width: 1fr;
         border: solid $primary;
-        height: 100%;
     }
     #preview-panel {
+        width: 2fr;
         border: solid $accent;
-        height: 100%;
         padding: 1 2;
+        layout: vertical;
     }
     #preview-title {
         text-style: bold;
@@ -88,12 +92,19 @@ class BrowseApp(App):
 
     def compose(self) -> ComposeResult:
         yield Header()
-        yield ListView(
-            *[StyleListItem(name) for name in SORTED_STYLES],
-            id="style-list",
-        )
-        yield PreviewPanel(id="preview-panel")
+        with Horizontal(id="content"):
+            yield ListView(
+                *[StyleListItem(name) for name in SORTED_STYLES],
+                id="style-list",
+            )
+            yield PreviewPanel(id="preview-panel")
         yield Footer()
+
+    def action_cursor_up(self) -> None:
+        self.query_one(ListView).action_cursor_up()
+
+    def action_cursor_down(self) -> None:
+        self.query_one(ListView).action_cursor_down()
 
     def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
         if isinstance(event.item, StyleListItem):

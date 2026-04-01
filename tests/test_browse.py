@@ -42,6 +42,27 @@ class TestBrowseApp:
             await pilot.press("q")
             # App should have exited cleanly (no exception)
 
+    @pytest.mark.asyncio
+    async def test_preview_panel_renders_children(self):
+        async with BrowseApp().run_test() as pilot:
+            await pilot.pause()
+            from textual.widgets import Label
+
+            from thothspinner.textual import ThothSpinnerWidget
+
+            panel = pilot.app.query_one(PreviewPanel)
+            assert panel.query(ThothSpinnerWidget)
+            assert panel.query(Label)
+
+    def test_browse_app_has_navigation_bindings(self):
+        keys = {b.key for b in BrowseApp.BINDINGS}
+        assert "up" in keys
+        assert "down" in keys
+
+    def test_browse_app_has_subtitle(self):
+        assert BrowseApp.SUB_TITLE
+        assert "↑" in BrowseApp.SUB_TITLE or "up" in BrowseApp.SUB_TITLE.lower()
+
 
 class TestPreviewPanel:
     def test_sorted_styles_covers_all_frames(self):
