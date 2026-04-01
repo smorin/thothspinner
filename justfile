@@ -5,6 +5,9 @@ default:
 # Install all dependencies
 install:
     uv sync
+
+# Install tools needed to regenerate demo.gif (macOS only)
+install-readme-animation:
     brew install vhs ttyd ffmpeg
 
 # Build distribution (wheel + sdist)

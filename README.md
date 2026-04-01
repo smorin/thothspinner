@@ -251,8 +251,8 @@ uv run thothspinner browse
 ### Generating the Demo GIF
 
 ```bash
-# Install dependencies (includes vhs, ttyd, ffmpeg)
-just install
+# Install GIF generation tools (macOS only, one-time)
+just install-readme-animation
 
 # Generate demo.gif
 just demo-gif
