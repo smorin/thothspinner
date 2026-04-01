@@ -11,7 +11,7 @@ A highly configurable progress indicator library for Python, built on Rich. Thot
 
 ## Demo
 
-![ThothSpinner demo](demo.gif)
+![ThothSpinner demo](docs/images/demo.gif)
 
 ## ✨ Features
 
@@ -46,6 +46,8 @@ uv add thothspinner
 ```
 
 ### Explore Spinner Styles
+
+![ThothSpinner Style Browser](docs/images/thoth-spinner-style-browser.png)
 
 ```bash
 # Preview all 48 spinner styles in the terminal
@@ -301,10 +303,10 @@ just install-readme-animation
 just demo-gif
 
 # Verify it looks right
-open demo.gif
+open docs/images/demo.gif
 
 # Commit and push
-git add demo.gif
+git add docs/images/demo.gif
 git commit -m "docs: add demo.gif for README"
 git push origin main
 ```
