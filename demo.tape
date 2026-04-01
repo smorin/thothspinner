@@ -1,31 +1,37 @@
 Output demo.gif
 Set FontSize 14
 Set Width 800
-Set Height 400
+Set Height 500
 Set Theme "Dracula"
-Set PlaybackSpeed 1.0
+Set PlaybackSpeed 0.75
 
 Sleep 500ms
 
-# Run the demo script showing ThothSpinner.track() in action
+# Full component demo: spinner + message + progress + timer + hint
+# Phases: Analyzing → Building → Testing → Deploying → success, then error sequence
+# Runtime: ~10s (phases × 0.04s/step + pauses)
 Type "uv run python examples/demo_for_gif.py"
 Enter
-Sleep 200ms
+Sleep 500ms
+Sleep 12000ms
 
-# Wait for 101 iterations × 0.025s ≈ 2.5s + buffer for startup and success display
-Sleep 4000ms
+# Style sampler — 4 visually distinct styles
+# Each preview runs for 3s; sleep 4s to cover display + printed name
 
-# Show the CLI preview command for a couple of styles
 Type "uv run thothspinner preview npm_dots"
 Enter
-Sleep 2000ms
+Sleep 4000ms
 
 Type "uv run thothspinner preview claude_stars"
 Enter
-Sleep 2000ms
+Sleep 4000ms
 
 Type "uv run thothspinner preview moon"
 Enter
-Sleep 2000ms
+Sleep 4000ms
+
+Type "uv run thothspinner preview earth"
+Enter
+Sleep 4000ms
 
 Sleep 500ms
