@@ -36,6 +36,30 @@ A highly configurable progress indicator library for Python, built on Rich. Thot
 
 ## 🚀 Quick Start
 
+### Setup
+
+```bash
+# Install from PyPI
+pip install thothspinner
+# or with uv (recommended)
+uv add thothspinner
+```
+
+### Explore Spinner Styles
+
+```bash
+# Preview all 48 spinner styles in the terminal
+thothspinner preview
+
+# Preview a specific style
+thothspinner preview npm_dots
+
+# Open interactive TUI style browser
+thothspinner browse
+```
+
+### Basic Usage
+
 ```python
 from thothspinner import ThothSpinner
 from rich.console import Console
@@ -79,6 +103,25 @@ class MyApp(App):
         spinner.success("Done!")
 
 MyApp().run()
+```
+
+### Run the Examples
+
+```bash
+# Run all examples (Rich + Textual)
+just examples
+
+# Or run by category
+just examples-thothspinner    # Rich ThothSpinner examples
+just examples-textual         # Textual widget examples
+
+# Or run individual examples
+just example-thothspinner-basic
+just example-thothspinner-full
+just example-progress
+just example-timer
+just example-message
+just example-message-shimmer
 ```
 
 ## 📦 Installation
