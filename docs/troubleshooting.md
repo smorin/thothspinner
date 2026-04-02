@@ -175,12 +175,12 @@ Progress updates lag behind actual progress.
 # Batch updates instead of updating every iteration
 with Live(spinner, refresh_per_second=10) as live:
     spinner.start()
-    
+
     # ❌ Wrong: Update on every iteration
     for i in range(10000):
         spinner.update_progress(current=i, total=10000)
         do_work()
-    
+
     # ✅ Better: Update every N iterations
     for i in range(10000):
         if i % 100 == 0:  # Update every 100 items
@@ -303,7 +303,7 @@ with Live(spinner, console=console) as live:
     spinner.start()
     # ... work ...
     spinner.success()  # Updates immediately
-    
+
     # Keep alive to see the success state
     time.sleep(2)  # Show success for 2 seconds
 ```
@@ -362,7 +362,7 @@ def update_worker():
         update = update_queue.get()
         if update is None:
             break
-        
+
         action, args = update
         if action == "progress":
             spinner.update_progress(**args)
@@ -532,12 +532,12 @@ Calling `input()` corrupts the spinner.
 # Temporarily stop Live display for input
 with Live(spinner, console=console) as live:
     spinner.start()
-    
+
     # Stop for input
     live.stop()
     user_input = input("Enter value: ")
     live.start()  # Resume
-    
+
     spinner.set_message(text=f"Processing: {user_input}")
 ```
 

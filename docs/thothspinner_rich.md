@@ -36,12 +36,12 @@ console = Console()
 with Live(ThothSpinner(), console=console) as live:
     spinner = live.renderable
     spinner.start()
-    
+
     # Simulate work
     for i in range(100):
         spinner.update_progress(current=i, total=100)
         time.sleep(0.05)
-    
+
     spinner.success("Task completed!")
 ```
 
@@ -418,7 +418,7 @@ config = {
         "color": "#D97706",
         "visible": True
     },
-    
+
     # Level 2: State-specific
     "states": {
         "success": {
@@ -430,7 +430,7 @@ config = {
             "message": {"text": "Failed"}
         }
     },
-    
+
     # Level 3: Component-specific
     "elements": {
         "spinner": {"color": "#FFA500"},  # Overrides default
@@ -512,11 +512,11 @@ import time
 with Live(ThothSpinner()) as live:
     spinner = live.renderable
     spinner.start()
-    
+
     for i in range(100):
         spinner.update_progress(current=i, total=100)
         time.sleep(0.05)
-    
+
     spinner.success("Processing complete!")
 ```
 
@@ -528,18 +528,18 @@ from pathlib import Path
 
 def process_files(directory: Path):
     files = list(directory.glob("*.txt"))
-    
+
     with Live(ThothSpinner()) as live:
         spinner = live.renderable
         spinner.start()
-        
+
         for i, file in enumerate(files):
             spinner.set_message_pinned(text=f"Processing {file.name}")
             spinner.update_progress(current=i, total=len(files))
-            
+
             # Process file
             process_file(file)
-        
+
         spinner.success(f"Processed {len(files)} files")
 ```
 
@@ -549,7 +549,7 @@ def process_files(directory: Path):
 with Live(ThothSpinner()) as live:
     spinner = live.renderable
     spinner.start()
-    
+
     try:
         # Risky operation
         result = perform_operation()
@@ -640,10 +640,10 @@ with Live(ThothSpinner(), transient=True) as live:
     spinner = live.renderable
     spinner.start()
     spinner.set_message_pinned(text="Processing")
-    
+
     for i in range(100):
         spinner.update_progress(current=i, total=100)
-    
+
     spinner.success()
 ```
 
@@ -678,18 +678,18 @@ def worker(worker_id: int):
 
 with Live(spinner) as live:
     spinner.start()
-    
+
     threads = [
         threading.Thread(target=worker, args=(i,))
         for i in range(2)
     ]
-    
+
     for t in threads:
         t.start()
-    
+
     for t in threads:
         t.join()
-    
+
     spinner.success("All workers completed")
 ```
 
@@ -706,7 +706,7 @@ class CustomComponent(BaseComponent):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         # Custom initialization
-    
+
     def __rich__(self):
         # Return Rich renderable
         return Text("Custom output", style=self.style)
@@ -718,11 +718,11 @@ class CustomComponent(BaseComponent):
 class DataProcessor:
     def __init__(self, spinner: ThothSpinner):
         self.spinner = spinner
-    
+
     def on_data_received(self, size: int):
         self.spinner.set_shimmer_direction(direction="right-to-left")
         self.spinner.set_message_pinned(text=f"Receiving {size} bytes")
-    
+
     def on_data_sent(self, size: int):
         self.spinner.set_shimmer_direction(direction="left-to-right")
         self.spinner.set_message_pinned(text=f"Sending {size} bytes")

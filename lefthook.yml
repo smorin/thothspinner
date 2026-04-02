@@ -5,25 +5,8 @@
 pre-commit:
   parallel: true
   commands:
-    trailing-whitespace:
-      glob: "*.{yml,yaml,md,sh,just,txt,json,toml,cfg,conf,ini,mdc}"
-      run: |
-        for f in {staged_files}; do
-          if [ -f "$f" ]; then
-            sed -i '' 's/[[:space:]]*$//' "$f"
-          fi
-        done
-      stage_fixed: true
-
-    end-of-file-fixer:
-      glob: "*.{yml,yaml,md,sh,just,txt,json,toml,cfg,conf,ini,mdc}"
-      run: |
-        for f in {staged_files}; do
-          if [ -f "$f" ] && [ -s "$f" ]; then
-            tail -c1 "$f" | read -r _ || echo "" >> "$f"
-          fi
-        done
-      stage_fixed: true
+    editorconfig:
+      run: uvx --from editorconfig-checker ec {staged_files}
 
     check-yaml:
       glob: "*.{yml,yaml}"

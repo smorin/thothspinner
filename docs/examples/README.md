@@ -32,10 +32,10 @@ console = Console()
 with Live(ThothSpinner(), console=console) as live:
     spinner = live.renderable
     spinner.start()
-    
+
     # Simulate work
     time.sleep(3)
-    
+
     spinner.success("Task completed!")
 ```
 
@@ -59,11 +59,11 @@ spinner = ThothSpinner(
 
 with Live(spinner, console=console) as live:
     spinner.start()
-    
+
     for i in range(101):
         spinner.update_progress(current=i, total=100)
         time.sleep(0.02)
-    
+
     spinner.success("All items processed!")
 ```
 
@@ -88,11 +88,11 @@ spinner = ThothSpinner(
 
 with Live(spinner, console=console, refresh_per_second=10) as live:
     spinner.start()
-    
+
     # Simulate long-running task
     for _ in range(70):
         time.sleep(1)
-    
+
     spinner.success("Operation completed!")
 ```
 
@@ -123,11 +123,11 @@ styles = [
 for style in styles:
     console.print(f"\n[bold]Style: {style}[/bold]")
     spinner = SpinnerComponent(style=style, color="#FFA500")
-    
+
     with Live(spinner, console=console, refresh_per_second=20) as live:
         time.sleep(3)
         spinner.success()
-    
+
     time.sleep(0.5)
 ```
 
@@ -154,14 +154,14 @@ formats = [
 
 for format_style, description in formats:
     console.print(f"\n[bold]{description}[/bold]")
-    
+
     progress = ProgressComponent(
         current=0,
         total=10,
         format={"style": format_style},
         color="#00FF00"
     )
-    
+
     with Live(progress, console=console) as live:
         for i in range(11):
             progress.set(i)
@@ -240,7 +240,7 @@ with Live(message, console=console, refresh_per_second=30) as live:
         if i == 5:
             # Change shimmer direction mid-operation
             message.reverse_shimmer = True
-    
+
     message.success()
 ```
 
@@ -317,12 +317,12 @@ spinner = ThothSpinner.from_dict(config)
 
 with Live(spinner, console=console) as live:
     spinner.start()
-    
+
     for i in range(50):
         spinner.update_progress(current=i, total=50)
         spinner.set_message(text=f"Processing item {i+1}")
         time.sleep(0.05)
-    
+
     spinner.success()
 ```
 
@@ -350,16 +350,16 @@ with Live(spinner, console=console) as live:
     spinner.start()
     spinner.set_message_pinned(text="Starting process")
     time.sleep(2)
-    
+
     # Simulate error
     spinner.error("Connection failed")
     time.sleep(3)  # Will auto-clear
-    
+
     # Reset and try again
     spinner.reset()
     spinner.set_message_pinned(text="Retrying connection")
     time.sleep(2)
-    
+
     # Success this time
     spinner.success("Connected successfully!")
     time.sleep(2)  # Will auto-clear
@@ -400,12 +400,12 @@ spinner = ThothSpinner(
 
 with Live(spinner, console=console) as live:
     spinner.start()
-    
+
     for i, file in enumerate(files):
         spinner.set_message(text=f"Processing {file.name}")
         spinner.update_progress(current=i, total=len(files))
         process_file(file)
-    
+
     spinner.update_progress(current=len(files), total=len(files))
     spinner.success(f"Processed {len(files)} files")
 
@@ -448,22 +448,22 @@ spinner = ThothSpinner(
 
 with Live(spinner, console=console, refresh_per_second=20) as live:
     spinner.start()
-    
+
     while downloaded < total_size:
         # Simulate variable download speed
         chunk_size = random.randint(100_000, 500_000)
         downloaded = min(downloaded + chunk_size, total_size)
-        
+
         # Update display
         percent = (downloaded / total_size) * 100
         spinner.update_progress(current=int(percent), total=100)
         spinner.set_message(
             text=f"Downloading: {format_bytes(downloaded)}/{format_bytes(total_size)}"
         )
-        
+
         # Simulate network delay
         time.sleep(0.1)
-    
+
     spinner.success("Download complete!")
 ```
 
@@ -487,13 +487,13 @@ class Worker:
         self.worker_id = worker_id
         self.spinner = spinner
         self.items_processed = 0
-    
+
     def process_items(self, num_items: int):
         """Process items with progress updates."""
         for i in range(num_items):
             # Simulate work
             time.sleep(random.uniform(0.05, 0.15))
-            
+
             # Thread-safe update
             self.items_processed += 1
             self.spinner.set_message(
@@ -512,32 +512,32 @@ total_items = num_workers * items_per_worker
 
 with Live(spinner, console=console) as live:
     spinner.start()
-    
+
     # Create and start worker threads
     workers = []
     threads = []
-    
+
     for i in range(num_workers):
         worker = Worker(i + 1, spinner)
         workers.append(worker)
-        
+
         thread = threading.Thread(
             target=worker.process_items,
             args=(items_per_worker,)
         )
         threads.append(thread)
         thread.start()
-    
+
     # Monitor progress
     while any(t.is_alive() for t in threads):
         total_processed = sum(w.items_processed for w in workers)
         spinner.update_progress(current=total_processed, total=total_items)
         time.sleep(0.1)
-    
+
     # Wait for all threads
     for thread in threads:
         thread.join()
-    
+
     spinner.success(f"All {num_workers} workers completed!")
 ```
 
@@ -577,7 +577,7 @@ with Live(spinner, console=console) as live:
         spinner.set_message_pinned(
             text=f"Attempt {retry_count + 1}/{max_retries}"
         )
-        
+
         try:
             result = unreliable_operation()
             spinner.success(f"Operation succeeded: {result}")
@@ -617,20 +617,20 @@ phases = [
 
 with Live(spinner, console=console, refresh_per_second=20) as live:
     spinner.start()
-    
+
     for phase, style, color in phases:
         # Update multiple components
         spinner.set_message_pinned(text=phase)
         spinner.set_spinner_style(style=style)
         spinner.set_hint(text=f"Phase: {phase}")
-        
+
         # Update progress for this phase
         for i in range(101):
             spinner.update_progress(current=i, total=100)
             time.sleep(0.01)
-        
+
         time.sleep(0.5)
-    
+
     spinner.success("All phases completed!")
 ```
 
@@ -653,14 +653,14 @@ class DataTransfer:
         self.spinner = spinner
         self.total_sent = 0
         self.total_received = 0
-    
+
     def send_data(self, size: int):
         """Simulate sending data."""
         self.spinner.set_shimmer_direction(direction="left-to-right")
         self.spinner.set_message_pinned(text=f"Sending {size}KB")
         self.total_sent += size
         time.sleep(0.5)
-    
+
     def receive_data(self, size: int):
         """Simulate receiving data."""
         self.spinner.set_shimmer_direction(direction="right-to-left")
@@ -677,14 +677,14 @@ transfer = DataTransfer(spinner)
 
 with Live(spinner, console=console, refresh_per_second=30) as live:
     spinner.start()
-    
+
     # Simulate bidirectional data transfer
     for _ in range(10):
         if random.choice([True, False]):
             transfer.send_data(random.randint(10, 100))
         else:
             transfer.receive_data(random.randint(10, 100))
-    
+
     spinner.success(
         f"Transfer complete! Sent: {transfer.total_sent}KB, "
         f"Received: {transfer.total_received}KB"
@@ -720,27 +720,27 @@ spinner = ThothSpinner(
 
 with Live(spinner, console=console) as live:
     spinner.start()
-    
+
     overall_progress = 0
-    
+
     for task_name, weight in tasks:
         spinner.set_message_pinned(text=task_name)
         spinner.set_hint(text=f"Step {tasks.index((task_name, weight)) + 1}/{len(tasks)}")
-        
+
         # Simulate task progress
         for i in range(101):
             # Calculate weighted overall progress
             task_contribution = (weight / total_weight) * (i / 100) * 100
             current_progress = overall_progress + task_contribution
-            
+
             spinner.update_progress(
                 current=int(current_progress),
                 total=100
             )
             time.sleep(0.01)
-        
+
         overall_progress += (weight / total_weight) * 100
-    
+
     spinner.success("All tasks completed successfully!")
 ```
 
