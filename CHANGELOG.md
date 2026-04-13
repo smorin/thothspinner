@@ -4,6 +4,24 @@
 
 ### Bug Fixes
 
+- Use --publish-url instead of --index for TestPyPI
+- Run uv lock after version bump
+
+### Features
+
+- Add commit hint to bump recipes
+
+### Miscellaneous
+
+- Update uv.lock for v1.2.2
+- Bump version to 1.2.3
+- Update uv.lock for v1.2.3
+- Bump version to 1.2.4
+
+## [1.2.1] - 2026-04-13
+
+### Bug Fixes
+
 - Auto-commit changelog and push main before tagging
 - Auto-commit uv.lock before clean tree check
 
@@ -12,6 +30,7 @@
 - Update changelog for v1.2.0 release
 - Update pyproject.toml for release
 - Update uv.lock for v1.2.1
+- Update CHANGELOG.md for v1.2.1
 
 ## [1.2.0] - 2026-04-13
 
