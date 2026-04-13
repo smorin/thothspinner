@@ -88,5 +88,12 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 addopts = "-v --cov=src/thothspinner --cov-report=term-missing --cov-report=html --cov-fail-under=90"
 
+[tool.uv]
+# pytest-textual-snapshot 1.1.0 pins syrupy==4.8.0 which caps pytest<9.0.0.
+# Override to allow pytest 9.x (needed for CVE fix) and newer syrupy.
+override-dependencies = [
+    "syrupy>=4.8.0",
+]
+
 # UV scripts support is not yet available in this version
 # Use just commands instead: just example-hint
