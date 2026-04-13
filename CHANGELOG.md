@@ -4,6 +4,16 @@
 
 ### Bug Fixes
 
+- Override syrupy pin to unblock pytest 9.x upgrade
+
+### Miscellaneous
+
+- Bump version to 1.2.5
+
+## [1.2.4] - 2026-04-13
+
+### Bug Fixes
+
 - Use --publish-url instead of --index for TestPyPI
 - Run uv lock after version bump
 
@@ -17,6 +27,7 @@
 - Bump version to 1.2.3
 - Update uv.lock for v1.2.3
 - Bump version to 1.2.4
+- Update CHANGELOG.md for v1.2.4
 
 ## [1.2.1] - 2026-04-13
 
