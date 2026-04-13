@@ -4,6 +4,30 @@
 
 ### Bug Fixes
 
+- Repair publish flag and skip snapshot tests on non-3.11 Python
+- Upgrade Pygments to 2.20.0 for ReDoS vulnerability
+- Add missing setup-uv and skip snapshot tests on macOS
+- Suppress bandit B311 for UI animation randomness
+
+### Documentation
+
+- Reformat changelog to conventional-changelog style
+
+### Features
+
+- Add actions language scanning and use build-mode in CodeQL
+- Add codespell, bandit, and editorconfig-checker to CI
+- Harden release recipe with pre-flight checks
+- Add uv.lock sync check to release script
+
+### Miscellaneous
+
+- Update lock file
+
+## [1.1.0] - 2026-04-01
+
+### Bug Fixes
+
 - Replace Static.update() with HintWidget.configure() in textual hint demo
 - Show Tab/Shift+Tab hint as label instead of Footer binding
 - Fix layout, message pin, and spinner refresh bugs
