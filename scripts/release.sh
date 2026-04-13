@@ -81,6 +81,15 @@ if [ "$LOCAL" != "$REMOTE" ]; then
         "  git pull --rebase origin main"
 fi
 
+# Check uv.lock is in sync with pyproject.toml
+echo "==> Checking uv.lock is up-to-date..."
+if ! uv lock --check 2>/dev/null; then
+    err "uv.lock is out of sync with pyproject.toml" \
+        "Update the lockfile and commit it:" \
+        "  uv lock" \
+        "  git add uv.lock && git commit -m 'chore: update uv.lock'"
+fi
+
 echo "==> Running quality checks (format, lint, typecheck, security, test)..."
 if ! just all; then
     err "Quality checks failed — fix the issues above before releasing" \
