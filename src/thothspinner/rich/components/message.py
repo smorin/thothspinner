@@ -392,7 +392,7 @@ class MessageComponent:
             available = self._action_words
             self._used_words.clear()
 
-        self._current_word = random.choice(available)
+        self._current_word = random.choice(available)  # nosec B311  # UI animation, not crypto
 
         # Track in history (keep last 5)
         self._used_words.append(self._current_word)
@@ -435,13 +435,13 @@ class MessageComponent:
 
         if self._last_word_change is None:
             self._last_word_change = current_time
-            self._next_interval = random.uniform(self.min_interval, self.max_interval)
+            self._next_interval = random.uniform(self.min_interval, self.max_interval)  # nosec B311  # UI animation, not crypto
             return True
 
         elapsed = current_time - self._last_word_change
         if elapsed >= self._next_interval:
             self._last_word_change = current_time
-            self._next_interval = random.uniform(self.min_interval, self.max_interval)
+            self._next_interval = random.uniform(self.min_interval, self.max_interval)  # nosec B311  # UI animation, not crypto
             return True
         return False
 
@@ -499,7 +499,7 @@ class MessageComponent:
             if self._manual_text_pending:
                 if self._restart_rotation_on_next_render:
                     self._last_word_change = current_time
-                    self._next_interval = random.uniform(self.min_interval, self.max_interval)
+                    self._next_interval = random.uniform(self.min_interval, self.max_interval)  # nosec B311  # UI animation, not crypto
                 self._clear_manual_text()
             elif self._calculate_next_word_change(current_time):
                 self._select_new_word()
