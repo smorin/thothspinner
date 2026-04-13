@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.8] - 2026-04-13
+
+### Miscellaneous
+
+- Improve release pipeline and bump version to 1.2.7
+
 ## [1.2.6] - 2026-04-13
 
 ### Bug Fixes
