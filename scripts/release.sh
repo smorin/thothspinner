@@ -109,6 +109,13 @@ if ! just changelog; then
         "You can also skip and generate it manually later"
 fi
 
+# Auto-commit changelog if it changed
+if [ -n "$(git status --porcelain CHANGELOG.md)" ]; then
+    git add CHANGELOG.md
+    git commit -m "chore(release): update CHANGELOG.md for v$VERSION"
+    echo "    Committed updated CHANGELOG.md"
+fi
+
 echo "==> Building distribution..."
 just clean
 if ! just build; then
@@ -119,6 +126,15 @@ fi
 
 echo "==> Tagging v$VERSION and pushing..."
 git tag "v$VERSION"
+if ! git push origin main; then
+    echo ""
+    echo "ERROR: Failed to push main to origin"
+    echo ""
+    echo "  The changelog commit is local. To retry:"
+    echo "    git push origin main"
+    echo ""
+    exit 1
+fi
 if ! git push origin "v$VERSION"; then
     echo ""
     echo "ERROR: Failed to push tag v$VERSION to origin"
