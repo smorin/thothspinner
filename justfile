@@ -129,7 +129,7 @@ build:
 # Publish to TestPyPI (requires OIDC or UV_PUBLISH_TOKEN)
 [group: 'release']
 publish-test:
-    uv publish --index-url https://test.pypi.org/legacy/
+    uv publish --publish-url https://test.pypi.org/legacy/
 
 # Publish to PyPI (requires OIDC or UV_PUBLISH_TOKEN)
 [group: 'release']
