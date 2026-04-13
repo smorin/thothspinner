@@ -113,18 +113,18 @@ if ! just build; then
         "  uv build"
 fi
 
-# Check local is up-to-date with remote (after all local release commits)
+# Check local is not behind remote (ahead is expected from release commits)
 git fetch origin main --quiet
-LOCAL=$(git rev-parse HEAD)
-REMOTE=$(git rev-parse origin/main)
-if [ "$LOCAL" != "$REMOTE" ]; then
+BEHIND=$(git rev-list HEAD..origin/main --count)
+if [ "$BEHIND" -gt 0 ]; then
     AHEAD=$(git rev-list origin/main..HEAD --count)
-    BEHIND=$(git rev-list HEAD..origin/main --count)
-    err "Local main is out of sync with origin/main (${AHEAD} ahead, ${BEHIND} behind)" \
-        "Local:  ${LOCAL:0:12}" \
-        "Remote: ${REMOTE:0:12}" \
-        "Pull the latest changes:" \
-        "  git pull --rebase origin main"
+    err "Local main is behind origin/main (${AHEAD} ahead, ${BEHIND} behind)" \
+        "Local:  $(git rev-parse --short HEAD)" \
+        "Remote: $(git rev-parse --short origin/main)" \
+        "Pull the latest changes and re-run release:" \
+        "  git pull --rebase origin main" \
+        "  git push origin main" \
+        "  just release"
 fi
 
 echo "==> Tagging v$VERSION and pushing..."
