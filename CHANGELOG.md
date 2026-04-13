@@ -4,6 +4,19 @@
 
 ### Bug Fixes
 
+- Auto-commit changelog and push main before tagging
+- Auto-commit uv.lock before clean tree check
+
+### Miscellaneous
+
+- Update changelog for v1.2.0 release
+- Update pyproject.toml for release
+- Update uv.lock for v1.2.1
+
+## [1.2.0] - 2026-04-13
+
+### Bug Fixes
+
 - Repair publish flag and skip snapshot tests on non-3.11 Python
 - Upgrade Pygments to 2.20.0 for ReDoS vulnerability
 - Add missing setup-uv and skip snapshot tests on macOS
