@@ -1,6 +1,6 @@
 [project]
 name = "thothspinner"
-version = "1.2.6"
+version = "1.2.7"
 description = "A highly configurable progress indicator library for Python with Rich and Textual support"
 readme = "README.md"
 license = "MIT"

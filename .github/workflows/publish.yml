@@ -18,6 +18,16 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Validate tag matches package version
+        run: |
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match pyproject.toml version ($PKG_VERSION)"
+            exit 1
+          fi
+          echo "Tag version matches package version: $PKG_VERSION"
+
       - name: Build package
         run: uv build
 

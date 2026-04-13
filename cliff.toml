@@ -26,6 +26,9 @@ commit_parsers = [
     { message = "^ci", group = "CI/CD" },
     { message = "^refactor", group = "Refactoring" },
     { message = "^test", group = "Testing" },
+    { message = "^chore\\(release\\)", skip = true },
+    { message = "^chore: bump version", skip = true },
+    { message = "^chore: update uv\\.lock for v", skip = true },
     { message = "^chore", group = "Miscellaneous" },
     { message = "^perf", group = "Performance" },
 ]

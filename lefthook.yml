@@ -52,4 +52,5 @@ pre-commit:
       run: uvx bandit -r src/ -ll
 
     pytest:
+      glob: "*.py"
       run: uv run pytest tests/ -v

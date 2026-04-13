@@ -1,25 +1,16 @@
 # Changelog
 
-## [Unreleased]
+## [1.2.6] - 2026-04-13
 
 ### Bug Fixes
 
 - Suppress setup-uv warnings in publish jobs
-
-### Miscellaneous
-
-- Bump version to 1.2.6
 
 ## [1.2.5] - 2026-04-13
 
 ### Bug Fixes
 
 - Override syrupy pin to unblock pytest 9.x upgrade
-
-### Miscellaneous
-
-- Bump version to 1.2.5
-- Update CHANGELOG.md for v1.2.5
 
 ## [1.2.4] - 2026-04-13
 
@@ -32,14 +23,6 @@
 
 - Add commit hint to bump recipes
 
-### Miscellaneous
-
-- Update uv.lock for v1.2.2
-- Bump version to 1.2.3
-- Update uv.lock for v1.2.3
-- Bump version to 1.2.4
-- Update CHANGELOG.md for v1.2.4
-
 ## [1.2.1] - 2026-04-13
 
 ### Bug Fixes
@@ -51,8 +34,6 @@
 
 - Update changelog for v1.2.0 release
 - Update pyproject.toml for release
-- Update uv.lock for v1.2.1
-- Update CHANGELOG.md for v1.2.1
 
 ## [1.2.0] - 2026-04-13
 
@@ -156,13 +137,11 @@
 ### Miscellaneous
 
 - Add lefthook git hooks and clean up planning artifacts
-- Update uv.lock for v1.0.0 version bump
 - Apply best-practice improvements from rich/textual comparison
 - Add DX improvements for versioning, changelog, security, and onboarding
 - Add vhs to install recipe
 - Move vhs/ttyd/ffmpeg to install-readme-animation recipe
 - Bump github/codeql-action from 3 to 4
-- Bump version to 1.1.0
 
 ## [0.1] - 2025-09-01
 

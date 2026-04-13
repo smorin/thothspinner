@@ -124,8 +124,13 @@ bump-major:
 
 # Generate CHANGELOG.md from git history (requires git-cliff)
 [group: 'release']
-changelog:
-    uvx git-cliff -o CHANGELOG.md
+changelog version="":
+    #!/usr/bin/env bash
+    if [ -n "{{version}}" ]; then
+        uvx git-cliff --tag "v{{version}}" -o CHANGELOG.md
+    else
+        uvx git-cliff -o CHANGELOG.md
+    fi
 
 # Build distribution (wheel + sdist)
 [group: 'release']

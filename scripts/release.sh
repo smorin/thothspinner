@@ -79,20 +79,6 @@ if [ "$BRANCH" != "main" ]; then
         "  git merge $BRANCH"
 fi
 
-# Check local is up-to-date with remote
-git fetch origin main --quiet
-LOCAL=$(git rev-parse HEAD)
-REMOTE=$(git rev-parse origin/main)
-if [ "$LOCAL" != "$REMOTE" ]; then
-    AHEAD=$(git rev-list origin/main..HEAD --count)
-    BEHIND=$(git rev-list HEAD..origin/main --count)
-    err "Local main is out of sync with origin/main (${AHEAD} ahead, ${BEHIND} behind)" \
-        "Local:  ${LOCAL:0:12}" \
-        "Remote: ${REMOTE:0:12}" \
-        "Pull the latest changes:" \
-        "  git pull --rebase origin main"
-fi
-
 echo "==> Running quality checks (format, lint, typecheck, security, test)..."
 if ! just all; then
     err "Quality checks failed — fix the issues above before releasing" \
@@ -105,7 +91,7 @@ if ! just all; then
 fi
 
 echo "==> Generating changelog..."
-if ! just changelog; then
+if ! just changelog "$VERSION"; then
     err "Changelog generation failed" \
         "Make sure git-cliff is available:" \
         "  uvx git-cliff --version" \
@@ -125,6 +111,20 @@ if ! just build; then
     err "Build failed — fix the build errors above" \
         "Try building manually to debug:" \
         "  uv build"
+fi
+
+# Check local is up-to-date with remote (after all local release commits)
+git fetch origin main --quiet
+LOCAL=$(git rev-parse HEAD)
+REMOTE=$(git rev-parse origin/main)
+if [ "$LOCAL" != "$REMOTE" ]; then
+    AHEAD=$(git rev-list origin/main..HEAD --count)
+    BEHIND=$(git rev-list HEAD..origin/main --count)
+    err "Local main is out of sync with origin/main (${AHEAD} ahead, ${BEHIND} behind)" \
+        "Local:  ${LOCAL:0:12}" \
+        "Remote: ${REMOTE:0:12}" \
+        "Pull the latest changes:" \
+        "  git pull --rebase origin main"
 fi
 
 echo "==> Tagging v$VERSION and pushing..."
@@ -154,4 +154,4 @@ echo ""
 echo "Release v$VERSION tagged and pushed!"
 echo "CI will publish to TestPyPI → PyPI."
 echo ""
-echo "  Monitor: https://github.com/$(git remote get-url origin | sed 's/.*github.com[:/]\(.*\)\.git/\1/')/actions"
+echo "  Monitor: https://github.com/$(git remote get-url origin | sed -E 's|.*github\.com[:/]||; s|\.git$||')/actions"
