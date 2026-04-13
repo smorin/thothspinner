@@ -4,11 +4,22 @@
 
 ### Bug Fixes
 
+- Suppress setup-uv warnings in publish jobs
+
+### Miscellaneous
+
+- Bump version to 1.2.6
+
+## [1.2.5] - 2026-04-13
+
+### Bug Fixes
+
 - Override syrupy pin to unblock pytest 9.x upgrade
 
 ### Miscellaneous
 
 - Bump version to 1.2.5
+- Update CHANGELOG.md for v1.2.5
 
 ## [1.2.4] - 2026-04-13
 
