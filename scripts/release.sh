@@ -43,6 +43,18 @@ if git rev-parse "v$VERSION" >/dev/null 2>&1; then
         "  just release"
 fi
 
+# Ensure uv.lock is in sync with pyproject.toml and committed
+echo "==> Checking uv.lock is up-to-date..."
+if ! uv lock --check 2>/dev/null; then
+    echo "    uv.lock is out of sync — updating..."
+    uv lock
+fi
+if [ -n "$(git status --porcelain uv.lock)" ]; then
+    git add uv.lock
+    git commit -m "chore: update uv.lock for v$VERSION"
+    echo "    Committed updated uv.lock"
+fi
+
 # Check for clean working tree
 if [ -n "$(git status --porcelain)" ]; then
     echo ""
@@ -79,15 +91,6 @@ if [ "$LOCAL" != "$REMOTE" ]; then
         "Remote: ${REMOTE:0:12}" \
         "Pull the latest changes:" \
         "  git pull --rebase origin main"
-fi
-
-# Check uv.lock is in sync with pyproject.toml
-echo "==> Checking uv.lock is up-to-date..."
-if ! uv lock --check 2>/dev/null; then
-    err "uv.lock is out of sync with pyproject.toml" \
-        "Update the lockfile and commit it:" \
-        "  uv lock" \
-        "  git add uv.lock && git commit -m 'chore: update uv.lock'"
 fi
 
 echo "==> Running quality checks (format, lint, typecheck, security, test)..."
