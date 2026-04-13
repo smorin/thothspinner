@@ -82,40 +82,43 @@ current-version:
 [group: 'versioning']
 bump-patch:
     #!/usr/bin/env python3
-    import re, pathlib
+    import re, pathlib, subprocess
     f = pathlib.Path('pyproject.toml')
     c = f.read_text()
     m = re.search(r'(version = ")(\d+)\.(\d+)\.(\d+)(")', c)
     new_v = f'{m.group(2)}.{m.group(3)}.{int(m.group(4))+1}'
     f.write_text(c[:m.start()] + f'{m.group(1)}{new_v}{m.group(5)}' + c[m.end():])
+    subprocess.run(['uv', 'lock'], check=True)
     print(f'Bumped patch: {m.group(2)}.{m.group(3)}.{m.group(4)} -> {new_v}')
-    print(f'  Next: git add pyproject.toml && git commit -m "chore: bump version to {new_v}"')
+    print(f'  Next: git add pyproject.toml uv.lock && git commit -m "chore: bump version to {new_v}"')
 
 # Bump minor version (1.0.0 → 1.1.0)
 [group: 'versioning']
 bump-minor:
     #!/usr/bin/env python3
-    import re, pathlib
+    import re, pathlib, subprocess
     f = pathlib.Path('pyproject.toml')
     c = f.read_text()
     m = re.search(r'(version = ")(\d+)\.(\d+)\.(\d+)(")', c)
     new_v = f'{m.group(2)}.{int(m.group(3))+1}.0'
     f.write_text(c[:m.start()] + f'{m.group(1)}{new_v}{m.group(5)}' + c[m.end():])
+    subprocess.run(['uv', 'lock'], check=True)
     print(f'Bumped minor: {m.group(2)}.{m.group(3)}.{m.group(4)} -> {new_v}')
-    print(f'  Next: git add pyproject.toml && git commit -m "chore: bump version to {new_v}"')
+    print(f'  Next: git add pyproject.toml uv.lock && git commit -m "chore: bump version to {new_v}"')
 
 # Bump major version (1.0.0 → 2.0.0)
 [group: 'versioning']
 bump-major:
     #!/usr/bin/env python3
-    import re, pathlib
+    import re, pathlib, subprocess
     f = pathlib.Path('pyproject.toml')
     c = f.read_text()
     m = re.search(r'(version = ")(\d+)\.(\d+)\.(\d+)(")', c)
     new_v = f'{int(m.group(2))+1}.0.0'
     f.write_text(c[:m.start()] + f'{m.group(1)}{new_v}{m.group(5)}' + c[m.end():])
+    subprocess.run(['uv', 'lock'], check=True)
     print(f'Bumped major: {m.group(2)}.{m.group(3)}.{m.group(4)} -> {new_v}')
-    print(f'  Next: git add pyproject.toml && git commit -m "chore: bump version to {new_v}"')
+    print(f'  Next: git add pyproject.toml uv.lock && git commit -m "chore: bump version to {new_v}"')
 
 # ─── Release ──────────────────────────────────────────────────────────
 
