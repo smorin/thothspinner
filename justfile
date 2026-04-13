@@ -139,23 +139,7 @@ publish:
 # Tag and push a release (triggers CI publish workflow)
 [group: 'release']
 release version="":
-    #!/usr/bin/env bash
-    if [ -z "{{version}}" ]; then
-        current=$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')
-        echo "Error: version argument required"
-        echo ""
-        echo "  Current version in pyproject.toml: $current"
-        echo "  Latest git tag:                    $(git tag --sort=-v:refname | head -1)"
-        echo ""
-        echo "Usage: just release <version>"
-        echo "Example: just release $current"
-        exit 1
-    fi
-    just changelog
-    just clean
-    just build
-    git tag v{{version}}
-    git push origin v{{version}}
+    ./scripts/release.sh {{version}}
 
 # ─── Examples: Rich ───────────────────────────────────────────────────
 
