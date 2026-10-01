@@ -86,8 +86,14 @@ class OrchestratorApp(App):
 
 
 def test_spinner_default(snap_compare):
-    """Spinner in default in_progress state (frame 0)."""
-    assert snap_compare(SpinnerApp(), terminal_size=(80, 3))
+    """Spinner in default in_progress state at the accepted snapshot's frame 1."""
+
+    async def freeze_frame(pilot):
+        spinner = pilot.app.query_one(SpinnerWidget)
+        spinner.stop()
+        spinner._frame_index = 1
+
+    assert snap_compare(SpinnerApp(), run_before=freeze_frame, terminal_size=(80, 3))
 
 
 def test_spinner_success(snap_compare):
