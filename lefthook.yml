@@ -6,7 +6,7 @@ pre-commit:
   parallel: true
   commands:
     editorconfig:
-      run: uvx --from editorconfig-checker ec {staged_files}
+      run: uvx --from 'editorconfig-checker>=3.6.1' ec {staged_files}
 
     check-yaml:
       glob: "*.{yml,yaml}"
