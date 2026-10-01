@@ -149,7 +149,7 @@ jobs:
         uses: astral-sh/setup-uv@v8.3.1
 
       - name: Run editorconfig-checker
-        run: uvx --from editorconfig-checker ec
+        run: uvx --from 'editorconfig-checker>=3.6.1' ec
 
       - name: Check for large files
         run: |
