@@ -53,7 +53,7 @@ jobs:
           ignore-empty-workdir: true
 
       - name: Download distribution artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: dist
           path: dist/
@@ -77,7 +77,7 @@ jobs:
           ignore-empty-workdir: true
 
       - name: Download distribution artifacts
-        uses: actions/download-artifact@v8.0.1
+        uses: actions/download-artifact@v8.0.2
         with:
           name: dist
           path: dist/
